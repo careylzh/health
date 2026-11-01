@@ -3,7 +3,7 @@
  * keyword tallies (keywords.ts) → ranked → slotted into fixed templates (i18n.ts).
  * Every template is ≤ 10 words by construction; insights.test.ts enforces it.
  */
-import type { Summary } from "./stats";
+import type { AppetiteCounts, Summary } from "./stats";
 import type { TagKey } from "./keywords";
 
 export type Bullet =
@@ -12,7 +12,7 @@ export type Bullet =
   /** `low` = most frequent difficult feeling and its day count; `up` = upbeat days. Plain counts, no tone claims. */
   | { kind: "mood"; low: [TagKey, number] | null; up: number; days: number }
   | { kind: "moodNone" }
-  | { kind: "appetite"; good: number; poor: number }
+  | ({ kind: "appetite" } & AppetiteCounts)
   | { kind: "appetiteNone" }
   | { kind: "body"; top: [TagKey, number][] }
   | { kind: "bodyNone" };
@@ -37,9 +37,9 @@ export function buildBullets(s: Summary, tagCounts: Partial<Record<TagKey, numbe
   }
 
   out.push(
-    s.goodAppetite + s.poorAppetite === 0
+    s.appetite.good + s.appetite.mixed + s.appetite.dipped + s.appetite.poor === 0
       ? { kind: "appetiteNone" }
-      : { kind: "appetite", good: s.goodAppetite, poor: s.poorAppetite },
+      : { kind: "appetite", ...s.appetite },
   );
 
   const top = (Object.entries(s.body) as [TagKey, number][]).sort((a, b) => b[1] - a[1]).slice(0, 2);

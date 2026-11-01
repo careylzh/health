@@ -4,6 +4,12 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-02 — appetite: good / mixed / dipped / poor, one state per day
+- A "dip" or "drop" is now *dipped*, not *poor*; *poor* needs explicitly bad words.
+- A day with good and a dip/poor is *mixed* and counted once (was counted as good AND poor).
+- Bullets: "Appetite mixed on 1 day: good with a dip", "Appetite: 3 good, 1 mixed".
+  Night detail shows one state ("mixed appetite") instead of two contradicting tags.
+
 ### 2026-11-02 — copy: "1 day", not "1 days"
 - English bullets now pluralise correctly in every appetite and mood variant.
 

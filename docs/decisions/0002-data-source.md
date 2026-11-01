@@ -40,13 +40,19 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   carry the negation ("no headache or nausea"). 中文: 不/没/没有/并不… directly before. "X-free"
   counts as negated. Negated *rested* becomes *unrested* ("didn't sleep well"); other tags just drop.
   Coverage is pinned by `src/data/semantics.test.ts` (phrases that must / must not fire).
-- **Appetite** is read per sentence: a sentence mentioning "appetite" gets *good* if it has a word
-  like good/fine/normal/better/returned and *poor* if it has dip/drop/low/poor/reduced/lost (or
-  "not good"). Both can apply to one day. Fixed phrases cover the rest ("ate well", "not hungry",
-  胃口好/差, 食欲不振, 不想吃). Tags belong to the row they are written on, never to earlier days.
-  Negation flips a word: a negator (not, n't forms such as didn't/won't/wasn't, never, no longer,
-  cannot, without, hardly, barely; straight or curly apostrophe) up to three words before it.
-  "did not drop" → good, "won't improve" → poor, "didn't eat much" / "hardly any appetite" → poor.
+- **Appetite — one state per day, four states** (user decision 2026-11-02: keep the nuance of
+  mixed notes, but never call a change "bad"):
+  - *good* — a good state or a return to it: good/fine/normal/back/improved, "ate well", 胃口好.
+  - *dipped* — a change downward, not a bad state: dip/drop/lower/reduced/less, "ate less",
+    "not as hungry", 胃口下降/变差.
+  - *poor* — an explicitly bad state: poor/bad/low/gone, "no appetite", "lost my appetite",
+    "barely ate", "skipped lunch", "not good", 胃口差, 食欲不振, 不想吃.
+  - *mixed* — good together with dipped or poor on the same day ("generally good, with a dip").
+  Words count when they sit in the clause that names appetite, or in a following clause that
+  carries on ("…, with the exception of a dip", "…, but lower at night") unless that clause has
+  moved to another subject ("…, but less anxious"). Strength words (slightly, a lot) do not change
+  the state. Negation flips: "did not drop" → good, "won't improve" → poor. The column a note sits
+  in (Positive/Negative) is not used — the words decide. Pinned by `keywords.test.ts`.
 - **Night quality dot:** rested (rested tag, not fragmented) · restless (unrested / woke often /
   cold sweat / nausea) · mixed (both, or fragmented). No dot when the notes say nothing.
 - **Not displayed:** the pharmacology column and verbatim notes (privacy; site is public).

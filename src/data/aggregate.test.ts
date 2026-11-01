@@ -63,9 +63,8 @@ describe("week summary", () => {
     expect(night("2026-10-30").tags).not.toContain("lowMood");
   });
 
-  it("appetite merges duplicate-date notes and note-only days", () => {
-    expect(week.goodAppetite).toBe(1);
-    expect(week.poorAppetite).toBe(1);
+  it("appetite merges duplicate-date notes and note-only days, one state per day", () => {
+    expect(week.appetite).toEqual({ good: 1, mixed: 0, dipped: 0, poor: 1, mixedWith: null });
   });
 
   it("body symptoms count once per day; 'no headache' is not a headache", () => {
@@ -77,7 +76,7 @@ describe("week summary", () => {
     expect(b).toEqual([
       { kind: "sleep", avg: 30.5 / 5, fragmented: 1, nights: 5 },
       { kind: "mood", low: ["lowMood", 1], up: 1, days: 7 },
-      { kind: "appetite", good: 1, poor: 1 },
+      { kind: "appetite", good: 1, mixed: 0, dipped: 0, poor: 1, mixedWith: null },
       { kind: "body", top: [["headache", 2], ["gut", 1]] },
     ]);
   });

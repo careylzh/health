@@ -1,5 +1,5 @@
 import { isFragmented, isLogged, totalHours, type Night } from "./parse";
-import { BODY, MOOD_DOWN, MOOD_UP, type TagKey } from "./keywords";
+import { appetiteState, BODY, MOOD_DOWN, MOOD_UP, type TagKey } from "./keywords";
 
 export type Quality = "good" | "mixed" | "poor";
 
@@ -11,6 +11,30 @@ export function nightQuality(n: Night): Quality | null {
   if (good && !poor && !isFragmented(n)) return "good";
   if (good || poor || isFragmented(n)) return "mixed";
   return null;
+}
+
+export interface AppetiteCounts {
+  good: number;
+  mixed: number;
+  dipped: number;
+  poor: number;
+  mixedWith: "dip" | "poor" | "both" | null;
+}
+
+export function countAppetite(days: { tags: TagKey[] }[]): AppetiteCounts {
+  const c: AppetiteCounts = { good: 0, mixed: 0, dipped: 0, poor: 0, mixedWith: null };
+  let withDip = false, withPoor = false;
+  for (const n of days) {
+    const st = appetiteState(n.tags);
+    if (!st) continue;
+    c[st]++;
+    if (st === "mixed") {
+      if (n.tags.includes("dipAppetite")) withDip = true;
+      if (n.tags.includes("poorAppetite")) withPoor = true;
+    }
+  }
+  if (c.mixed) c.mixedWith = withDip && withPoor ? "both" : withDip ? "dip" : "poor";
+  return c;
 }
 
 export interface Summary {
@@ -27,8 +51,8 @@ export interface Summary {
   quality: Record<Quality, number>;
   moodUp: number;
   moodDown: number;
-  goodAppetite: number;
-  poorAppetite: number;
+  /** Days per appetite state (one state per day). `mixedWith`: what the good days were mixed with. */
+  appetite: AppetiteCounts;
   body: Partial<Record<TagKey, number>>;
 }
 
@@ -70,8 +94,7 @@ export function summarise(all: Night[], days: number, today: Date): Summary {
     // Mood/appetite count every dated row in range (notes can exist without sleep numbers).
     moodUp: window.filter((n) => has(n, MOOD_UP)).length,
     moodDown: window.filter((n) => has(n, MOOD_DOWN)).length,
-    goodAppetite: window.filter((n) => n.tags.includes("goodAppetite")).length,
-    poorAppetite: window.filter((n) => n.tags.includes("poorAppetite")).length,
+    appetite: countAppetite(window),
     body,
   };
 }

@@ -14,49 +14,109 @@ export const TAGS = {
   anxious: /anxi|\bruminat|\bbrood|\bworr\w*|\bstress|\bpanic\w*|\bnervous|\bon edge\b|\btense\b|\buneasy\b|焦虑|担心|紧张|不安|恐慌/i,
   irritable: /\banger\b|\bangry\b|\birritab|\birritated\b|\bresent|\bfrustrat|\bannoy|\bsnapp(?:ed|ing) at\b|\bshort[- ]tempered|\blost my temper|\brage\b|\bfurious|生气|烦躁|恼火|发火|易怒/i,
   goodMood: /\bhopeful|\bcalm|\bhappy\b|\bhappi|\bgrateful|\bgratitude|\brelaxed|\benergetic|\b(?:feel\w*|felt) (?:really |very |so |quite |pretty )?(?:great|good|fine|better|positive|content|amazing|fantastic|light)\b|\bfantastic|\bgood mood|\bcheerful|\bjoy|\bupbeat|\bmotivated\b|开心|平静|感恩|清晰|心情(?:很|还|挺)?好|快乐|高兴/i,
-  // Appetite: only the fixed phrases live here; appetiteTags() below also reads "appetite" + a
-  // describing word anywhere in the same sentence, in either order, and handles negation.
-  goodAppetite: /great appetit|good appetit|ate well|eating well|胃口(?:很|还|挺|比较)?(?:好|不错|正常|恢复)|食欲(?:很|还|挺)?(?:好|不错|正常|恢复)|(?:胃口|食欲)(?:没有?|并不|并没有?)(?:变)?(?:差|不好|下降)/i,
-  poorAppetite: /\bno (?:real |much )?appetit|没(?:有)?胃口|胃口(?:很|有点|比较)?(?:差|不好|不太好|下降)|食欲(?:很|有点)?(?:差|不振|不好|下降)|不想吃|吃不下/i,
+  // Appetite fixed phrases. appetiteEvents() also reads "appetite" + a describing word in the same
+  // clause (or a following "except …/but …" clause). Three kinds, never collapsed:
+  //   good = a good state or a return to it · dip = a change downward · poor = an explicitly bad state.
+  goodAppetite: /\b(?:great|good|healthy|big|hearty|normal|strong) appetit|\bate (?:well|a lot|normally|properly|heartily)\b|\beating (?:well|normally|properly)\b|胃口(?:很|还|挺|比较)?(?:好|不错|正常|恢复)|食欲(?:很|还|挺)?(?:好|不错|正常|恢复)|吃得(?:很|挺|还)?(?:好|香)|(?:胃口|食欲)(?:没有?|并不|并没有?)(?:变)?(?:差|不好|下降)/i,
+  dipAppetite: /\b(?:ate|eat|eating) less\b|\bless hungry\b|\bsmaller (?:meals|portions)\b|\b(?:lower|reduced|decreased|less|smaller|weaker) appetit|(?:\bnot|n['’]t|\b(?:did|do|does|was|were|is)nt)\s+(?:quite\s+)?(?:(?:eat|eating|ate)\s+)?as\s+(?:hungry|much|good|great|strong|big)\b|(?:胃口|食欲)(?:有点|有些|稍微|略)?(?:下降|变差|减退|变小|不如)|吃得(?:比较|有点)?少/i,
+  poorAppetite: /\b(?:no|poor|bad|low|zero|minimal) (?:real |much )?appetit|\b(?:lost|losing|lose|loss of) (?:my |the |all |any |of )?appetit|\bappetite (?:is |was |has )?(?:gone|lost|non-?existent)|\bbarely (?:ate|eat)|\bskipped (?:meals|lunch|dinner|breakfast)|没(?:有)?(?:胃口|食欲)|胃口(?:很|有点|比较)?(?:差|不好|不太好)|食欲(?:很|有点)?(?:差|不振|不好)|不想吃|吃不下/i,
 } as const;
 
 export type TagKey = keyof typeof TAGS;
 
 // ── Appetite ────────────────────────────────────────────────────────────────────────────
 // Negators: didn't / did not / won't / will not / wasn't / can't / cannot / never / no longer /
-// without / hardly / barely … (straight or curly apostrophe). A negator up to three words before
-// a describing word flips it: "did not drop" → good, "won't improve" → poor.
+// without / hardly / barely … (straight or curly apostrophe, or none: "didnt"). A negator up to
+// three words before a describing word flips it: "did not drop" → good, "won't improve" → poor.
 /** "didnt", "couldnt", "wont" … — notes are often typed without the apostrophe. */
 const NT_BARE = String.raw`\b(?:did|do|does|was|were|is|are|have|has|had|could|would|should|ca|wo|ai|must|need)nt\b`;
 const NEG = String.raw`(?:\bnot|n['’]t|${NT_BARE}|\bnever|\bno longer|\bcannot|\bwithout|\bhardly|\bbarely|\bscarcely)`;
 const GAP = String.raw`(?:\s+[\w'’]+){0,3}?\s+`;
-const GOOD_W = String.raw`(?:good|great|fine|normal|ok|okay|better|returned|return|came back|come back|back to normal|healthy|improv\w*|strong|hearty|hungry)`;
-const POOR_W = String.raw`(?:dip\w*|drop\w*|low\w*|poor|bad|reduc\w*|decreas\w*|los[est]\w*|loss|lack\w*|less|weak\w*|worse\w*|suppress\w*|affect\w*)`;
+const GOOD_W = String.raw`(?:good|great|fine|normal|ok|okay|better|returned|return|(?:is|was|came|come|coming) back|back to normal|healthy|improv\w*|strong|hearty|hungry|picked up|recover\w*)`;
+const DIP_W = String.raw`(?:dip\w*|drop\w*|reduc\w*|decreas\w*|lower\w*|weak\w*|worse\w*|suppress\w*|affect\w*|declin\w*|went down|gone down|going down|dwindl\w*|less)`;
+const POOR_W = String.raw`(?:poor|bad|terrible|awful|horrible|low|non-?existent|gone|minimal)`;
 const re = (src: string, flags = "i") => new RegExp(src, flags);
 
-const NEG_GOOD = re(`${NEG}${GAP}${GOOD_W}\\b`);
-const NEG_POOR = re(`${NEG}${GAP}${POOR_W}\\b`);
-const NEG_ANY_ALL = re(`${NEG}${GAP}(?:${GOOD_W}|${POOR_W})\\b`, "gi");
-const PLAIN_GOOD = re(`\\b${GOOD_W}\\b`);
-const PLAIN_POOR = re(`\\b${POOR_W}\\b`);
+const NEG_GOOD = re(`${NEG}${GAP}${GOOD_W}\\b`, "gi");
+const NEG_DIP = re(`${NEG}${GAP}${DIP_W}\\b`, "gi");
+const NEG_POOR = re(`${NEG}${GAP}${POOR_W}\\b`, "gi");
+// 中文 describing words for a clause that already talks about 胃口/食欲 (or carries on from one).
+const ZH_GOOD = "不错|很好|挺好|正常|恢复";
+const ZH_DIP = "下降|变差|减少|减退|少了|不如";
+const ZH_POOR = "很差|不好|没胃口";
+const ZH_NEG = "(?:没有?|并没有?|并不|不)";
+const PLAIN = {
+  good: re(`\\b${GOOD_W}\\b|${ZH_GOOD}`, "gi"),
+  dip: re(`\\b${DIP_W}\\b|${ZH_DIP}`, "gi"),
+  poor: re(`\\b${POOR_W}\\b|${ZH_POOR}`, "gi"),
+};
+const ZH_NEG_BAD = re(`${ZH_NEG}(?:变)?(?:${ZH_DIP}|差)`, "gi");
 /** Whole-text phrases that need no "appetite" word: "didn't eat much", "won't be hungry". */
-const NOT_EATING = re(`${NEG}(?:\\s+[\\w'’]+){0,2}?\\s+(?:eat|eating|ate|hungry)\\b|${NEG}\\s+(?:have |had |has |feel |felt )?(?:much |an? |any |the )?appetit`);
-const APPETITE = /appetit/i;
+const NOT_EATING = re(`${NEG}(?:\\s+[\\w'’]+){0,2}?\\s+(?:eat|eating|ate|hungry)\\b|${NEG}\\s+(?:have |had |has |feel |felt )?(?:much |an? |any |the )?appetit`, "gi");
+const HUNGRY = /\bhungry\b/gi;
+const APPETITE = /appetit|胃口|食欲/i;
+/** A clause that starts like this still talks about the previous clause's subject. */
+const CARRY_ON = /^\s*(?:with the exception of|except(?: for)?|apart from|other than|aside from|besides|but|though|although|however|yet|save for|除了|但是?|不过|可是)/i;
 
-function appetiteTags(text: string): TagKey[] {
-  let good = TAGS.goodAppetite.test(text), poor = TAGS.poorAppetite.test(text);
-  if (NOT_EATING.test(text)) poor = true;
-  else if (/\bhungry\b/i.test(text)) good = true;
-  // A sentence can carry both ("Appetite generally good, except a dip lately") — both tags apply.
-  for (const sentence of text.split(/[.!?;\n。！？；]+/)) {
-    if (!APPETITE.test(sentence)) continue;
-    if (NEG_GOOD.test(sentence)) poor = true;
-    if (NEG_POOR.test(sentence)) good = true;
-    const rest = sentence.replace(NEG_ANY_ALL, " ");
-    if (PLAIN_GOOD.test(rest)) good = true;
-    if (PLAIN_POOR.test(rest)) poor = true;
+export type AppetiteKind = "goodAppetite" | "dipAppetite" | "poorAppetite";
+/** One finding: which tag, and where in the text (so a time phrase can be attached later). */
+export interface TagEvent { tag: TagKey; at: number }
+
+const blank = (t: string, r: RegExp) => t.replace(r, (m) => " ".repeat(m.length));
+const matches = (t: string, r: RegExp) => [...t.matchAll(r)].map((m) => m.index!);
+
+/** Clause spans of a sentence: split on , ; ， 、 and contrast words, keeping offsets. */
+function clauseSpans(sentence: string): { start: number; text: string }[] {
+  const out: { start: number; text: string }[] = [];
+  const SPLIT = /[,;，、]|(?=\b(?:but|except|though|although|however|whereas)\b)|(?=但是|不过|可是|除了)/gi;
+  let last = 0;
+  for (const m of sentence.matchAll(SPLIT)) {
+    if (m.index! > last) out.push({ start: last, text: sentence.slice(last, m.index!) });
+    last = m.index! + m[0].length;
   }
-  return [...(good ? ["goodAppetite" as const] : []), ...(poor ? ["poorAppetite" as const] : [])];
+  out.push({ start: last, text: sentence.slice(last) });
+  return out.filter((c) => c.text.trim());
+}
+
+/** Any non-appetite tag word in a clause means the clause has moved on to another subject. */
+const otherSubject = (t: string) => GENERIC.some((k) => TAGS[k].test(t));
+
+function appetiteEvents(sentence: string, base: number): TagEvent[] {
+  const ev: TagEvent[] = [];
+  const add = (tag: AppetiteKind, at: number) => ev.push({ tag, at: base + at });
+  // 1. Fixed phrases, most specific first; each is blanked so a weaker reading can't reuse it.
+  let t = sentence;
+  for (const k of ["dipAppetite", "poorAppetite", "goodAppetite"] as const) {
+    const g = new RegExp(TAGS[k].source, "gi");
+    for (const i of matches(t, g)) add(k, i);
+    t = blank(t, g);
+  }
+  for (const i of matches(t, NOT_EATING)) add("poorAppetite", i);
+  t = blank(t, NOT_EATING);
+  for (const i of matches(t, HUNGRY)) add("goodAppetite", i);
+  t = blank(t, HUNGRY);
+  // 2. "appetite" + describing word in the same clause, or in a following clause that carries on
+  //    ("…, with the exception of a dip") and has not moved to another subject ("…, less anxious").
+  const spans = clauseSpans(sentence); // offsets are shared by `sentence` and its blanked copy `t`
+  let inScope = false;
+  for (const c of spans) {
+    const original = c.text;
+    if (APPETITE.test(original)) inScope = true;
+    else if (!(inScope && CARRY_ON.test(original) && !otherSubject(original))) {
+      inScope = false;
+      continue;
+    }
+    let u = t.slice(c.start, c.start + c.text.length); // with fixed phrases blanked out
+    for (const i of matches(u, NEG_GOOD)) add("poorAppetite", c.start + i);
+    for (const i of matches(u, NEG_DIP)) add("goodAppetite", c.start + i);
+    for (const i of matches(u, NEG_POOR)) add("goodAppetite", c.start + i);
+    for (const i of matches(u, ZH_NEG_BAD)) add("goodAppetite", c.start + i);
+    u = blank(blank(blank(blank(u, NEG_GOOD), NEG_DIP), NEG_POOR), ZH_NEG_BAD);
+    for (const i of matches(u, PLAIN.good)) add("goodAppetite", c.start + i);
+    for (const i of matches(u, PLAIN.dip)) add("dipAppetite", c.start + i);
+    for (const i of matches(u, PLAIN.poor)) add("poorAppetite", c.start + i);
+  }
+  return ev;
 }
 
 // ── Negation for every non-appetite tag ─────────────────────────────────────────────────
@@ -67,10 +127,10 @@ const EN_NEG_BEFORE = re(String.raw`(?:\b(?:not|never|no|cannot|without|hardly|b
 const ZH_NEG_BEFORE = /(?:不|没|没有|并不|并没有?|毫不|从不|从没有?|别)(?:太|很|怎么|再|有|觉得|感到|感觉)?$/;
 const CONTRAST = /\b(?:but|and|though|although|yet|however|so|because|while|except|then|whereas)\b|[,，]/i;
 const FREE_AFTER = /^[\s-]*free\b/i;
-const CLAUSES = /[.!?;\n。！？；]+/;
 /** Negated `rested` means poor sleep ("didn't sleep well", "not rested"). Others just drop. */
 const FLIP: Partial<Record<TagKey, TagKey>> = { rested: "unrested" };
-const GENERIC = (Object.keys(TAGS) as TagKey[]).filter((k) => k !== "goodAppetite" && k !== "poorAppetite");
+const APPETITE_TAGS: TagKey[] = ["goodAppetite", "dipAppetite", "poorAppetite"];
+const GENERIC = (Object.keys(TAGS) as TagKey[]).filter((k) => !APPETITE_TAGS.includes(k));
 const GLOBAL = Object.fromEntries(GENERIC.map((k) => [k, new RegExp(TAGS[k].source, "gi")])) as Record<TagKey, RegExp>;
 
 function isNegated(clause: string, start: number, end: number): boolean {
@@ -78,19 +138,36 @@ function isNegated(clause: string, start: number, end: number): boolean {
   return EN_NEG_BEFORE.test(before) || ZH_NEG_BEFORE.test(before) || FREE_AFTER.test(clause.slice(end, end + 8));
 }
 
-export function tagText(text: string): TagKey[] {
-  const tags = new Set<TagKey>();
-  for (const clause of text.split(CLAUSES)) {
-    if (!clause.trim()) continue;
+/** Every tag finding in a day's notes, with its character offset. */
+export function tagEvents(text: string): TagEvent[] {
+  const ev: TagEvent[] = [];
+  let base = 0;
+  for (const sentence of text.split(/(?<=[.!?;\n。！？；])/)) {
     for (const k of GENERIC) {
-      for (const m of clause.matchAll(GLOBAL[k])) {
-        if (!isNegated(clause, m.index!, m.index! + m[0].length)) tags.add(k);
-        else if (FLIP[k]) tags.add(FLIP[k]!);
+      for (const m of sentence.matchAll(GLOBAL[k])) {
+        const at = m.index!;
+        if (!isNegated(sentence, at, at + m[0].length)) ev.push({ tag: k, at: base + at });
+        else if (FLIP[k]) ev.push({ tag: FLIP[k]!, at: base + at });
       }
     }
+    ev.push(...appetiteEvents(sentence, base));
+    base += sentence.length;
   }
-  for (const t of appetiteTags(text)) tags.add(t);
-  return [...tags];
+  return ev;
+}
+
+export function tagText(text: string): TagKey[] {
+  return [...new Set(tagEvents(text).map((e) => e.tag))];
+}
+
+/** One appetite state per day, so a day is never counted twice. */
+export type AppetiteState = "good" | "mixed" | "dipped" | "poor";
+export function appetiteState(tags: readonly TagKey[]): AppetiteState | null {
+  const good = tags.includes("goodAppetite"), dip = tags.includes("dipAppetite"), poor = tags.includes("poorAppetite");
+  if (good && (dip || poor)) return "mixed";
+  if (poor) return "poor";
+  if (dip) return "dipped";
+  return good ? "good" : null;
 }
 
 export const MOOD_UP: TagKey[] = ["goodMood"];

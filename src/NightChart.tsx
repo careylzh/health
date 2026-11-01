@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { totalHours, type Night } from "./data/parse";
 import { nightQuality } from "./data/stats";
+import { appetiteState } from "./data/keywords";
 import { formatDay, STRINGS, type Lang } from "./i18n";
 
 interface Props {
@@ -125,7 +126,12 @@ export function NightChart({ nights, avg, lang }: Props) {
 function Detail({ n, lang }: { n: Night; lang: Lang }) {
   const t = STRINGS[lang];
   const q = nightQuality(n);
-  const tags = n.tags.filter((k) => k !== "rested" && k !== "unrested").slice(0, 2).map((k) => t.tag[k]);
+  // Appetite shows as one state ("mixed appetite"), never as two contradicting tags.
+  const app = appetiteState(n.tags);
+  const tags = [
+    ...n.tags.filter((k) => k !== "rested" && k !== "unrested" && !k.endsWith("Appetite")).map((k) => t.tag[k]),
+    ...(app ? [t.appetiteState[app]] : []),
+  ].slice(0, 2);
   return (
     <span>
       <b>{formatDay(n.iso, lang, { weekday: "short", day: "numeric", month: "short" })}</b>

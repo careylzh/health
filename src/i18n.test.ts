@@ -14,9 +14,15 @@ const bullets: Bullet[] = [
   ]),
   { kind: "mood", low: null, up: 5, days: 7 },
   { kind: "moodNone" },
-  { kind: "appetite", good: 1, poor: 0 },
-  { kind: "appetite", good: 0, poor: 12 },
-  { kind: "appetite", good: 12, poor: 12 },
+  { kind: "appetite", good: 1, mixed: 0, dipped: 0, poor: 0, mixedWith: null },
+  { kind: "appetite", good: 0, mixed: 0, dipped: 0, poor: 12, mixedWith: null },
+  { kind: "appetite", good: 0, mixed: 0, dipped: 88, poor: 0, mixedWith: null },
+  { kind: "appetite", good: 0, mixed: 1, dipped: 0, poor: 0, mixedWith: "dip" },
+  { kind: "appetite", good: 0, mixed: 88, dipped: 0, poor: 0, mixedWith: "poor" },
+  { kind: "appetite", good: 0, mixed: 88, dipped: 0, poor: 0, mixedWith: "both" },
+  { kind: "appetite", good: 1, mixed: 0, dipped: 0, poor: 1, mixedWith: null },
+  { kind: "appetite", good: 88, mixed: 88, dipped: 88, poor: 88, mixedWith: "both" },
+  { kind: "appetite", good: 12, mixed: 0, dipped: 0, poor: 12, mixedWith: null },
   { kind: "appetiteNone" },
   { kind: "body", top: [["coldSweat", 12], ["gut", 10]] },
   { kind: "body", top: [["headache", 1]] },
@@ -58,14 +64,14 @@ describe("i18n parity", () => {
 describe("English plurals", () => {
   it("says 1 day, not 1 days", () => {
     const texts = ([
-      { kind: "appetite", good: 1, poor: 1 },
-      { kind: "appetite", good: 1, poor: 0 },
-      { kind: "appetite", good: 0, poor: 1 },
+      { kind: "appetite", good: 0, mixed: 1, dipped: 0, poor: 0, mixedWith: "dip" },
+      { kind: "appetite", good: 1, mixed: 0, dipped: 0, poor: 0, mixedWith: null },
+      { kind: "appetite", good: 0, mixed: 0, dipped: 1, poor: 0, mixedWith: null },
       { kind: "mood", low: null, up: 1, days: 1 },
       { kind: "mood", low: ["anxious", 1], up: 0, days: 1 },
       { kind: "mood", low: ["anxious", 1], up: 1, days: 1 },
     ] as Bullet[]).map((b) => bulletText(b, "en").text);
     for (const t of texts) expect(t).not.toMatch(/\b1 days\b/);
-    expect(texts[0]).toBe("Appetite: good 1 day, poor 1 day");
+    expect(texts[0]).toBe("Appetite mixed on 1 day: good with a dip");
   });
 });

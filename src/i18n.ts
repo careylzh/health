@@ -3,7 +3,7 @@
  * Bullet templates must stay 5–10 words (EN) / ≤ 20 characters (ZH) — i18n.test.ts enforces it.
  */
 import type { Bullet } from "./data/insights";
-import type { TagKey } from "./data/keywords";
+import type { AppetiteState, TagKey } from "./data/keywords";
 import type { Quality } from "./data/stats";
 
 export type Lang = "en" | "zh";
@@ -11,6 +11,7 @@ export type Lang = "en" | "zh";
 export const RANGES = [7, 14, 30, 90] as const;
 export type RangeDays = (typeof RANGES)[number];
 
+const APPETITE_ORDER = ["good", "mixed", "dipped", "poor"] as const;
 /** "1 day" / "2 days" — English only; 中文 has no plural. */
 const d = (n: number) => `${n} ${n === 1 ? "day" : "days"}`;
 const h1 = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
@@ -46,8 +47,9 @@ const en = {
     rested: "rested", unrested: "unrested", wokeOften: "woke often", coldSweat: "cold sweats",
     nausea: "nausea", headache: "headache", gut: "stomach upset", lowMood: "low mood",
     anxious: "anxiety", irritable: "irritability", goodMood: "upbeat mood",
-    goodAppetite: "good appetite", poorAppetite: "poor appetite",
+    goodAppetite: "good appetite", dipAppetite: "appetite dipped", poorAppetite: "poor appetite",
   } as Record<TagKey, string>,
+  appetiteState: { good: "good appetite", mixed: "mixed appetite", dipped: "appetite dipped", poor: "poor appetite" } as Record<AppetiteState, string>,
   scroll: "Scroll",
 };
 
@@ -82,8 +84,9 @@ const zh: typeof en = {
     rested: "精神好", unrested: "没睡好", wokeOften: "常醒", coldSweat: "冒冷汗",
     nausea: "恶心", headache: "头痛", gut: "肠胃不适", lowMood: "情绪低落",
     anxious: "焦虑", irritable: "易怒", goodMood: "心情好",
-    goodAppetite: "胃口好", poorAppetite: "胃口差",
+    goodAppetite: "胃口好", dipAppetite: "胃口下降", poorAppetite: "胃口差",
   },
+  appetiteState: { good: "胃口好", mixed: "胃口时好时差", dipped: "胃口下降", poor: "胃口差" },
   scroll: "下滑",
 };
 
@@ -105,13 +108,18 @@ export function bulletText(b: Bullet, lang: Lang): { icon: string; text: string 
         return { icon: "💗", text };
       }
       case "moodNone": return { icon: "💗", text: "No mood notes in this period" };
-      case "appetite":
-        return {
-          icon: "🍽️",
-          text: b.poor === 0 ? `Good appetite noted on ${d(b.good)}`
-            : b.good === 0 ? `Poor appetite noted on ${d(b.poor)}`
-            : `Appetite: good ${d(b.good)}, poor ${d(b.poor)}`,
-        };
+      case "appetite": {
+        const parts = APPETITE_ORDER.filter((k) => b[k] > 0);
+        if (parts.length > 1) return { icon: "🍽️", text: `Appetite: ${parts.map((k) => `${b[k]} ${k}`).join(", ")}` };
+        const one = parts[0], n = b[one];
+        const text = one === "good" ? `Good appetite noted on ${d(n)}`
+          : one === "poor" ? `Poor appetite noted on ${d(n)}`
+          : one === "dipped" ? `Appetite dipped on ${d(n)}`
+          : b.mixedWith === "dip" ? `Appetite mixed on ${d(n)}: good with a dip`
+          : b.mixedWith === "poor" ? `Appetite mixed on ${d(n)}: good and poor`
+          : `Appetite mixed on ${d(n)}`;
+        return { icon: "🍽️", text };
+      }
       case "appetiteNone": return { icon: "🍽️", text: "No appetite notes in this period" };
       case "body":
         return { icon: "🩺", text: `Physical: ${b.top.map(([k, c]) => `${tag(k)} ×${c}`).join(", ")}` };
@@ -128,11 +136,19 @@ export function bulletText(b: Bullet, lang: Lang): { icon: string; text: string 
       return { icon: "💗", text };
     }
     case "moodNone": return { icon: "💗", text: "此期间没有情绪记录" };
-    case "appetite":
-      return {
-        icon: "🍽️",
-        text: b.poor === 0 ? `${b.good} 天胃口好` : b.good === 0 ? `${b.poor} 天胃口差` : `胃口好 ${b.good} 天，差 ${b.poor} 天`,
-      };
+    case "appetite": {
+      const parts = APPETITE_ORDER.filter((k) => b[k] > 0);
+      const zh = { good: "好", mixed: "混合", dipped: "下降", poor: "差" } as const;
+      if (parts.length > 1) return { icon: "🍽️", text: `胃口天数：${parts.map((k) => `${zh[k]}${b[k]}`).join(" ")}` };
+      const one = parts[0], n = b[one];
+      const text = one === "good" ? `${n} 天胃口好`
+        : one === "poor" ? `${n} 天胃口差`
+        : one === "dipped" ? `${n} 天胃口下降`
+        : b.mixedWith === "dip" ? `${n} 天胃口好但有下降`
+        : b.mixedWith === "poor" ? `${n} 天胃口时好时差`
+        : `${n} 天胃口好坏不一`;
+      return { icon: "🍽️", text };
+    }
     case "appetiteNone": return { icon: "🍽️", text: "此期间没有胃口记录" };
     case "body": return { icon: "🩺", text: `身体：${b.top.map(([k, c]) => `${tag(k)} ×${c}`).join("，")}` };
     case "bodyNone": return { icon: "🩺", text: "此期间没有身体不适" };
