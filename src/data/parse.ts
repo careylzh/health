@@ -61,11 +61,13 @@ export function parseSheet(csv: string, tabYear: number): Night[] {
     });
   }
 
-  // Year inference: Nov/Dec rows before the first Jan/Feb row belong to the previous year.
+  // Year inference: Nov/Dec rows at the TOP of a tab (before any Jan–Oct row) are last year's
+  // carry-over. Once any Jan–Oct row is seen, later Nov/Dec rows are this year's — even in a tab
+  // with no Jan/Feb rows at all.
   let seenEarly = false;
   const byIso = new Map<string, { duration: number | null; sleep: number | null; wake: number | null; notes: string[] }>();
   for (const r of raw) {
-    if (r.month <= 2) seenEarly = true;
+    if (r.month <= 10) seenEarly = true;
     const year = r.year ?? (!seenEarly && r.month >= 11 ? tabYear - 1 : tabYear);
     const iso = isoDate(year, r.month, r.day);
     const dur = parseFloat(r.cells.duration);

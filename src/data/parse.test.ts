@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseSheet, totalHours, type Night } from "./parse";
-import { TAB_2026 } from "./fixtures";
+import { HEADER, TAB_2026, row } from "./fixtures";
 
 const nights = parseSheet(TAB_2026, 2026);
 const get = (iso: string) => nights.find((n) => n.iso === iso) as Night;
@@ -44,5 +44,11 @@ describe("parseSheet", () => {
     expect(get("2026-10-18").tags).toEqual(expect.arrayContaining(["lowMood", "headache"]));
     expect(get("2026-10-10").tags).toContain("goodAppetite");
     expect(get("2026-10-10").tags).not.toContain("goodMood");
+  });
+
+  it("keeps Nov/Dec as this year once any Jan–Oct row is seen, even with no Jan/Feb rows", () => {
+    const csv = [HEADER, row(["15/12", "", "", "", "7.00", "", "", "", ""]), row(["30/10", "", "", "", "7.00", "", "", "", ""]),
+      row(["2/11", "", "", "", "7.00", "", "", "", ""])].join("\n");
+    expect(parseSheet(csv, 2026).map((n) => n.iso)).toEqual(["2025-12-15", "2026-10-30", "2026-11-02"]);
   });
 });
