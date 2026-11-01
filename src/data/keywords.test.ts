@@ -36,6 +36,8 @@ describe("appetite tagging", () => {
     ["did not eat dinner", ["poorAppetite"]],
     ["won't be hungry", ["poorAppetite"]],
     ["barely ate", ["poorAppetite"]],
+    ["didnt eat much", ["poorAppetite"]],
+    ["appetite didnt drop", ["goodAppetite"]],
     ["hardly any appetite", ["poorAppetite"]],
     ["haven't had much appetite", ["poorAppetite"]],
     ["can't eat", ["poorAppetite"]],

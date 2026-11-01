@@ -4,6 +4,15 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-02 — mood / body / sleep tags: negation and wider vocabulary
+- One negation rule for every tag: "didn't feel anxious", "no headache or nausea", "little to no
+  anxiety", "stress-free", 不焦虑 no longer count; "didn't sleep well" counts as unrested.
+- Wider vocabulary (EN + 中文): insomnia, couldn't/couldnt sleep, groggy, migraine, threw up,
+  night sweats, constipated, frustrated, panic, nervous, felt better, 失眠, 头疼, 恶心, 盗汗, 紧张…
+- Word-boundary fixes: "presentation" / "ranger" no longer count as irritable, "unhappy" no
+  longer counts as happy, "stomach was fine" no longer counts as a gut problem.
+- `src/data/semantics.test.ts`: phrases that must and must not trigger each tag.
+
 ### 2026-11-02 — appetite matching understands natural phrasing
 - "Appetite" plus a describing word anywhere in the same sentence, in either order, now counts
   ("Appetite generally good", "a dip in appetite"). A sentence can count as both good and poor.

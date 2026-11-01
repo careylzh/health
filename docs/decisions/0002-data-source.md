@@ -30,6 +30,12 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   fixed templates in `src/i18n.ts`. Plain day counts only ("Mood: anxiety 3 days, upbeat 2 days"),
   no tone claims. Every template is ≤ 10 words EN / ≤ 20 chars ZH, enforced by `src/i18n.test.ts`.
   Never verbatim notes.
+- **Negation (all tags):** a match is dropped when a negator (not, no, never, without, hardly,
+  n't forms with or without the apostrophe: didn't/didnt, won't/wont…) sits ≤ 3 words before it in
+  the same clause with no contrast word between ("but", "and", "though", a comma). "or"/"nor"
+  carry the negation ("no headache or nausea"). 中文: 不/没/没有/并不… directly before. "X-free"
+  counts as negated. Negated *rested* becomes *unrested* ("didn't sleep well"); other tags just drop.
+  Coverage is pinned by `src/data/semantics.test.ts` (phrases that must / must not fire).
 - **Appetite** is read per sentence: a sentence mentioning "appetite" gets *good* if it has a word
   like good/fine/normal/better/returned and *poor* if it has dip/drop/low/poor/reduced/lost (or
   "not good"). Both can apply to one day. Fixed phrases cover the rest ("ate well", "not hungry",
