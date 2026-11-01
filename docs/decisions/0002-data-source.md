@@ -21,7 +21,10 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   compute from the times (wrapping past midnight). If it is 0/empty with no times → **not logged**
   (excluded from averages, counted separately).
 - **Extra (fragmented) sleep:** regex over `remarks` + observations for time ranges introduced by
-  "sleep/slept" (e.g. "went back to sleep from 6.30-10am", "Slept 9-11am", "slept from 5.30-8.30am").
+  a sleep word — slept/sleep/asleep/nap/dozed/back to bed/睡 (e.g. "went back to sleep from
+  6.30-10am", "fell back asleep 7-9am", "6.30am-8.15am slept again", "又睡了7点到9点"). Separators:
+  - – ~ to till until and 到 至. Negated sleep is never a segment: "couldn't sleep 2-4am",
+  "tried to sleep 6-8am but couldn't", "no sleep from 4-6am", 睡不着. Pinned by `segments.test.ts`.
   A range is added only if it starts at or after the main wake time (± 0) and before 14:00.
   A night with ≥ 1 extra segment is **fragmented**.
 - **Mood / appetite / body bullets — no AI, no tokens.** Computed in the browser on every load:

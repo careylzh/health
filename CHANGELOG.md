@@ -4,6 +4,12 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-02 — broken sleep: more phrasings, negated sleep excluded
+- Now read: "fell back asleep 7-9am", "dozed off", "back to bed", "till/until/between … and",
+  "6.30am-8.15am slept again", 中文 "又睡了7点到9点".
+- "couldn't sleep 2-4am", "tried to sleep … but couldn't", "no sleep from 4-6am" are no longer
+  counted as extra sleep. Real sheet unchanged (7 broken nights, 22.5 extra hours).
+
 ### 2026-11-02 — mood / body / sleep tags: negation and wider vocabulary
 - One negation rule for every tag: "didn't feel anxious", "no headache or nausea", "little to no
   anxiety", "stress-free", 不焦虑 no longer count; "didn't sleep well" counts as unrested.
