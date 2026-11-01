@@ -14,7 +14,8 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   byte-identical, only one tab really exists: keep the year under which its dates are not in
   the future (dates > today + 1 day ⇒ wrong year).
 - **Dates:** `D/M` or `D/M/YY(YY)`. Explicit year wins. Otherwise the tab year, except rows dated
-  Nov/Dec that appear **before** the first Jan/Feb row in the tab → previous year.
+  Nov/Dec that appear **before** any Jan–Oct row (carry-over at the top of the tab) → previous
+  year. (Was "before the first Jan/Feb row" — that misfiled a tab with no Jan/Feb rows.)
 - **Duplicate dates** (e.g. a note-only row + a data row): merge — the row with sleep data wins
   for numbers; notes are concatenated.
 - **Main sleep hours:** the `Duration` column if > 0. If it is 0/empty but both times exist,

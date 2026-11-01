@@ -4,6 +4,13 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-02 — year inference fix + end-to-end aggregation tests
+- Bug: Nov/Dec rows were filed under last year until a Jan/Feb row appeared, so a tab without
+  Jan/Feb rows dropped this year's November from "past week". Now Nov/Dec are last year's only at
+  the top of a tab, before any Jan–Oct row. Real sheet: every date unchanged.
+- `src/data/aggregate.test.ts`: rows → nights → summary → bullets, with duplicate dates, note-only
+  days, negated symptoms, naps, segments before waking and an out-of-range day.
+
 ### 2026-11-02 — broken sleep: more phrasings, negated sleep excluded
 - Now read: "fell back asleep 7-9am", "dozed off", "back to bed", "till/until/between … and",
   "6.30am-8.15am slept again", 中文 "又睡了7点到9点".
