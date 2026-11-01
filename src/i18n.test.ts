@@ -8,9 +8,11 @@ const LONG_TAGS: TagKey[] = ["irritable", "poorAppetite", "goodAppetite", "coldS
 const bullets: Bullet[] = [
   { kind: "sleep", avg: 10.55, fragmented: 30, nights: 90 },
   { kind: "sleepNone" },
-  ...(["positive", "mixed", "low"] as const).flatMap((tone) =>
-    LONG_TAGS.map((feeling) => ({ kind: "mood" as const, tone, feeling, count: 88, days: 90 })),
-  ),
+  ...LONG_TAGS.flatMap((k) => [
+    { kind: "mood" as const, low: [k, 88] as [TagKey, number], up: 77, days: 90 },
+    { kind: "mood" as const, low: [k, 1] as [TagKey, number], up: 0, days: 90 },
+  ]),
+  { kind: "mood", low: null, up: 5, days: 7 },
   { kind: "moodNone" },
   { kind: "appetite", good: 1, poor: 0 },
   { kind: "appetite", good: 0, poor: 12 },

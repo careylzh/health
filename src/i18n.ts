@@ -2,7 +2,7 @@
  * All user-visible copy, English + 中文. Components never hard-code strings (AGENTS.md).
  * Bullet templates must stay 5–10 words (EN) / ≤ 20 characters (ZH) — i18n.test.ts enforces it.
  */
-import type { Bullet, Tone } from "./data/insights";
+import type { Bullet } from "./data/insights";
 import type { TagKey } from "./data/keywords";
 import type { Quality } from "./data/stats";
 
@@ -39,14 +39,13 @@ const en = {
   fragNone: "No broken nights noted",
   glanceTitle: "At a glance",
   hours: (n: number) => `${h1(n)} h`,
-  quality: { good: "Woke rested", mixed: "Mixed", poor: "Restless" } as Record<Quality, string>,
+  quality: { good: "Rested", mixed: "Mixed", poor: "Restless" } as Record<Quality, string>,
   tag: {
     rested: "rested", unrested: "unrested", wokeOften: "woke often", coldSweat: "cold sweats",
     nausea: "nausea", headache: "headache", gut: "stomach upset", lowMood: "low mood",
     anxious: "anxiety", irritable: "irritability", goodMood: "upbeat mood",
     goodAppetite: "good appetite", poorAppetite: "poor appetite",
   } as Record<TagKey, string>,
-  tone: { positive: "Mostly positive", mixed: "Mixed mood", low: "Mostly low" } as Record<Tone, string>,
   scroll: "Scroll",
 };
 
@@ -76,14 +75,13 @@ const zh: typeof en = {
   fragNone: "没有记录到中断",
   glanceTitle: "一览",
   hours: (n) => `${h1(n)} 小时`,
-  quality: { good: "醒来精神好", mixed: "一般", poor: "睡不安稳" },
+  quality: { good: "精神好", mixed: "一般", poor: "睡不安稳" },
   tag: {
     rested: "精神好", unrested: "没睡好", wokeOften: "常醒", coldSweat: "冒冷汗",
     nausea: "恶心", headache: "头痛", gut: "肠胃不适", lowMood: "情绪低落",
     anxious: "焦虑", irritable: "易怒", goodMood: "心情好",
     goodAppetite: "胃口好", poorAppetite: "胃口差",
   },
-  tone: { positive: "情绪大多积极", mixed: "情绪起伏", low: "情绪大多低落" },
   scroll: "下滑",
 };
 
@@ -98,7 +96,13 @@ export function bulletText(b: Bullet, lang: Lang): { icon: string; text: string 
       case "sleep":
         return { icon: "🌙", text: `Averaged ${h1(b.avg)} h; ${b.fragmented} of ${b.nights} nights broken` };
       case "sleepNone": return { icon: "🌙", text: "No sleep logged in this period" };
-      case "mood": return { icon: "💗", text: `${t.tone[b.tone]}: ${tag(b.feeling)} on ${b.count} of ${b.days} days` };
+      case "mood": {
+        const d = (n: number) => `${n} ${n === 1 ? "day" : "days"}`;
+        const text = !b.low ? `Mood: upbeat on ${b.up} of ${b.days} days`
+          : b.up === 0 ? `Mood: ${tag(b.low[0])} on ${b.low[1]} of ${b.days} days`
+          : `Mood: ${tag(b.low[0])} ${d(b.low[1])}, upbeat ${d(b.up)}`;
+        return { icon: "💗", text };
+      }
       case "moodNone": return { icon: "💗", text: "No mood notes in this period" };
       case "appetite":
         return {
@@ -116,7 +120,12 @@ export function bulletText(b: Bullet, lang: Lang): { icon: string; text: string 
   switch (b.kind) {
     case "sleep": return { icon: "🌙", text: `平均 ${h1(b.avg)} 小时，${b.nights} 晚中 ${b.fragmented} 晚中断` };
     case "sleepNone": return { icon: "🌙", text: "此期间没有睡眠记录" };
-    case "mood": return { icon: "💗", text: `${t.tone[b.tone]}：${b.days} 天中 ${b.count} 天${tag(b.feeling)}` };
+    case "mood": {
+      const text = !b.low ? `情绪：${b.days} 天中 ${b.up} 天心情好`
+        : b.up === 0 ? `情绪：${b.days} 天中 ${b.low[1]} 天${tag(b.low[0])}`
+        : `情绪：${tag(b.low[0])} ${b.low[1]} 天，心情好 ${b.up} 天`;
+      return { icon: "💗", text };
+    }
     case "moodNone": return { icon: "💗", text: "此期间没有情绪记录" };
     case "appetite":
       return {

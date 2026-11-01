@@ -12,7 +12,8 @@ describe("buildBullets", () => {
     const b = buildBullets(s, countTags(s.window), s.window.length);
     expect(b.map((x) => x.kind)).toEqual(["sleep", "mood", "appetite", "body"]);
     const mood = b[1];
-    expect(mood.kind === "mood" && mood.tone).toBe("low");
+    // lowMood (18/10) and anxious (27/10) tie at 1 day; ties resolve in LOW_FEELINGS order.
+    expect(mood.kind === "mood" && mood.low).toEqual(["lowMood", 1]);
   });
 
   it("falls back to 'none' bullets for an empty range", () => {

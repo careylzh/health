@@ -6,19 +6,18 @@
 import type { Summary } from "./stats";
 import type { TagKey } from "./keywords";
 
-export type Tone = "positive" | "mixed" | "low";
-
 export type Bullet =
   | { kind: "sleep"; avg: number; fragmented: number; nights: number }
   | { kind: "sleepNone" }
-  | { kind: "mood"; tone: Tone; feeling: TagKey; count: number; days: number }
+  /** `low` = most frequent difficult feeling and its day count; `up` = upbeat days. Plain counts, no tone claims. */
+  | { kind: "mood"; low: [TagKey, number] | null; up: number; days: number }
   | { kind: "moodNone" }
   | { kind: "appetite"; good: number; poor: number }
   | { kind: "appetiteNone" }
   | { kind: "body"; top: [TagKey, number][] }
   | { kind: "bodyNone" };
 
-const MOOD_FEELINGS: TagKey[] = ["goodMood", "lowMood", "anxious", "irritable"];
+const LOW_FEELINGS: TagKey[] = ["lowMood", "anxious", "irritable"];
 
 export function buildBullets(s: Summary, tagCounts: Partial<Record<TagKey, number>>, days: number): Bullet[] {
   const out: Bullet[] = [];
@@ -31,14 +30,10 @@ export function buildBullets(s: Summary, tagCounts: Partial<Record<TagKey, numbe
 
   if (s.moodUp + s.moodDown === 0) out.push({ kind: "moodNone" });
   else {
-    const tone: Tone =
-      s.moodUp >= 2 * s.moodDown ? "positive" : s.moodDown >= 2 * s.moodUp ? "low" : "mixed";
-    // Most frequent feeling; on a tie prefer the one that matches the tone.
-    const ranked = MOOD_FEELINGS.map((k) => [k, tagCounts[k] ?? 0] as const)
+    const low = LOW_FEELINGS.map((k) => [k, tagCounts[k] ?? 0] as [TagKey, number])
       .filter(([, c]) => c > 0)
-      .sort((a, b) => b[1] - a[1] || (tone === "positive" ? (a[0] === "goodMood" ? -1 : 1) : a[0] === "goodMood" ? 1 : -1));
-    const [feeling, count] = ranked[0];
-    out.push({ kind: "mood", tone, feeling, count, days });
+      .sort((a, b) => b[1] - a[1])[0] ?? null;
+    out.push({ kind: "mood", low, up: s.moodUp, days });
   }
 
   out.push(
