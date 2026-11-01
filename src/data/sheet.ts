@@ -41,12 +41,17 @@ export async function loadNights(today: Date, fetchText: Fetcher = defaultFetch)
     sets = [prev !== null ? parseSheet(prev, year - 1) : [], cur !== null ? parseSheet(cur, year) : []];
   }
 
-  // Merge by date; a later set only fills dates the earlier one lacks data for.
+  // Merge by date; a later set only fills dates the earlier one lacks sleep data for. Tags are
+  // unioned: a time phrase in one tab ("past 3 days" on 1 Jan) can name days in the other.
   const byIso = new Map<string, Night>();
   for (const set of sets) {
     for (const n of set) {
       const old = byIso.get(n.iso);
-      if (!old || (old.mainHours === null && n.mainHours !== null)) byIso.set(n.iso, n);
+      if (!old) byIso.set(n.iso, n);
+      else {
+        const keep = old.mainHours === null && n.mainHours !== null ? n : old;
+        byIso.set(n.iso, { ...keep, tags: [...new Set([...old.tags, ...n.tags])] });
+      }
     }
   }
   return [...byIso.values()].filter((n) => n.iso <= tomorrow).sort((a, b) => a.iso.localeCompare(b.iso));

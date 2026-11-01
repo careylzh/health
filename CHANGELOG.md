@@ -4,6 +4,13 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-02 — time phrases place tags on the days they name
+- "a dip in the past 2 days" on 2 Nov now counts on 1 and 2 Nov; "depressed yesterday" counts on
+  the day before. Vague phrases ("a few days", "lately") are not guessed. Spans tied to another
+  event ("for 8 days before the symptoms") don't move a tag.
+- "generally good, except a dip the past 2 days" → 2 dipped days (the general "good" has no day).
+- Real sheet: past week now reads "Appetite dipped on 2 days".
+
 ### 2026-11-02 — appetite: good / mixed / dipped / poor, one state per day
 - A "dip" or "drop" is now *dipped*, not *poor*; *poor* needs explicitly bad words.
 - A day with good and a dip/poor is *mixed* and counted once (was counted as good AND poor).

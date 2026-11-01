@@ -56,6 +56,7 @@ describe("appetite state", () => {
     ["Appetite generally good, with the exception of a dip", "mixed"],
     ["Appetite mostly good, except a small dip yesterday", "mixed"],
     ["appetite good but lower in the evening", "mixed"],
+    ["Appetite generally good, with a dip", "mixed"],
     ["good appetite at lunch, no appetite at dinner", "mixed"],
     ["胃口不错，但是晚上有点下降", "mixed"],
     // negation
@@ -82,6 +83,7 @@ describe("appetite state", () => {
   it("a following clause that moves to another subject does not qualify appetite", () => {
     expect(state("Appetite good, but less anxious")).toBe("good");
     expect(state("Appetite good, except felt sad")).toBe("good");
+    expect(state("Appetite good, with a headache")).toBe("good");
     expect(state("Appetite fine. Less anxious than yesterday")).toBe("good"); // "less" is next sentence
   });
 });

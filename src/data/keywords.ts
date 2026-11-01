@@ -1,3 +1,5 @@
+import { timePhrase } from "./timeref";
+
 /**
  * Keyword tags for short, privacy-safe summaries (never verbatim notes).
  * Each tag: a regex over the day's observation text (English + 中文).
@@ -56,7 +58,7 @@ const NOT_EATING = re(`${NEG}(?:\\s+[\\w'’]+){0,2}?\\s+(?:eat|eating|ate|hungr
 const HUNGRY = /\bhungry\b/gi;
 const APPETITE = /appetit|胃口|食欲/i;
 /** A clause that starts like this still talks about the previous clause's subject. */
-const CARRY_ON = /^\s*(?:with the exception of|except(?: for)?|apart from|other than|aside from|besides|but|though|although|however|yet|save for|除了|但是?|不过|可是)/i;
+const CARRY_ON = /^\s*(?:with the exception of|with|except(?: for)?|apart from|other than|aside from|besides|but|though|although|however|yet|save for|除了|但是?|不过|可是)/i;
 
 export type AppetiteKind = "goodAppetite" | "dipAppetite" | "poorAppetite";
 /** One finding: which tag, and where in the text (so a time phrase can be attached later). */
@@ -154,6 +156,49 @@ export function tagEvents(text: string): TagEvent[] {
     base += sentence.length;
   }
   return ev;
+}
+
+const EXCEPTION = /\b(?:except|exception|apart from|other than|aside from|save for)\b|除了/i;
+
+/**
+ * Which days each tag is about, as day offsets from the row date (0 = the row itself).
+ * A tag takes the time phrase in its own clause; else a time phrase that opens the sentence in a
+ * clause of its own ("Past 3 days, anxious and tired"); else the row. Vague phrases ("a few days")
+ * keep the row. In a sentence with an exception ("generally good, except a dip the past 2 days"),
+ * an untimed statement is not placed on the days the exception covers — those days get only the
+ * exception; if nothing is left, the general statement names no specific day and is not counted.
+ */
+export function datedTags(text: string, row: Date): Map<number, Set<TagKey>> {
+  const events = tagEvents(text);
+  const out = new Map<number, Set<TagKey>>();
+  const put = (off: number, tag: TagKey) => {
+    if (!out.has(off)) out.set(off, new Set());
+    out.get(off)!.add(tag);
+  };
+  let base = 0;
+  for (const sentence of text.split(/(?<=[.!?;\n。！？；])/)) {
+    const end = base + sentence.length;
+    const mine = events.filter((e) => e.at >= base && e.at < end);
+    if (mine.length) {
+      const spans = clauseSpans(sentence);
+      const spanOf = (at: number) => spans.find((c) => at - base >= c.start && at - base < c.start + c.text.length);
+      const lead = spans[0] && !mine.some((e) => spanOf(e.at) === spans[0]) ? timePhrase(spans[0].text, row) : null;
+      const placed = mine.map((e) => {
+        const c = spanOf(e.at);
+        const own = c ? timePhrase(c.text, row) : null;
+        const t = own ?? lead;
+        const timed = t !== null && t.days !== null;
+        return { tag: e.tag, days: t?.days ?? [0], timed, exception: !!c && EXCEPTION.test(sentence.slice(0, c.start + c.text.length)) && timed };
+      });
+      const covered = new Set(placed.filter((p) => p.exception).flatMap((p) => p.days));
+      for (const p of placed) {
+        const days = !p.timed && covered.size ? p.days.filter((d) => !covered.has(d)) : p.days;
+        for (const d of days) put(d, p.tag);
+      }
+    }
+    base = end;
+  }
+  return out;
 }
 
 export function tagText(text: string): TagKey[] {

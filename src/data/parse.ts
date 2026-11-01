@@ -1,7 +1,7 @@
 import { parseCsv } from "./csv";
 import { indexColumns } from "./columns";
 import { extractSleepSegments, parseClock, spanHours, type Segment } from "./time";
-import { tagText, type TagKey } from "./keywords";
+import { datedTags, type TagKey } from "./keywords";
 
 export interface Night {
   /** Local date of the log row, `YYYY-MM-DD` (the morning after the night). */
@@ -22,6 +22,7 @@ export const isFragmented = (n: Night) => n.segments.length > 0;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 export const isoDate = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
+const ymd = (d: Date): [number, number, number] => [d.getFullYear(), d.getMonth() + 1, d.getDate()];
 
 /** Latest start (minutes) for a segment to count as "went back to sleep" rather than a nap. */
 const EXTRA_LATEST_START = 14 * 60;
@@ -87,7 +88,22 @@ export function parseSheet(csv: string, tabYear: number): Night[] {
     }
   }
 
+  // Tags go to the days their time phrase names ("a dip the past 2 days" → this row and the one
+  // before). A named day with no row of its own becomes a note-only day (sleep not logged).
+  const tagsByIso = new Map<string, Set<TagKey>>();
+  for (const [iso, e] of byIso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    for (const [off, tags] of datedTags(e.notes.join("\n"), new Date(y, m - 1, d))) {
+      const target = isoDate(...ymd(new Date(y, m - 1, d + off)));
+      if (!tagsByIso.has(target)) tagsByIso.set(target, new Set());
+      for (const t of tags) tagsByIso.get(target)!.add(t);
+    }
+  }
+
   const nights: Night[] = [];
+  for (const iso of tagsByIso.keys()) {
+    if (!byIso.has(iso)) byIso.set(iso, { duration: null, sleep: null, wake: null, notes: [] });
+  }
   for (const [iso, e] of byIso) {
     let main = e.duration;
     if (main === null && e.sleep !== null && e.wake !== null && e.sleep !== e.wake) {
@@ -106,7 +122,7 @@ export function parseSheet(csv: string, tabYear: number): Night[] {
       segments,
       sleepTime: e.sleep,
       wakeTime: e.wake,
-      tags: tagText(notes),
+      tags: [...(tagsByIso.get(iso) ?? [])],
     });
   }
   return nights.sort((a, b) => a.iso.localeCompare(b.iso));

@@ -53,6 +53,20 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   moved to another subject ("…, but less anxious"). Strength words (slightly, a lot) do not change
   the state. Negation flips: "did not drop" → good, "won't improve" → poor. The column a note sits
   in (Positive/Negative) is not used — the words decide. Pinned by `keywords.test.ts`.
+- **Time phrases decide which days a tag lands on** (user decision 2026-11-02: "guess time
+  phrases but be as precise as you can"). Rules live in `src/data/timeref.ts`, pinned by
+  `timeref.test.ts`:
+  - "past/last N days", "for N days", 过去/最近 N 天 → the N days *ending on the row* ("past 2 days"
+    on 2 Nov = 1–2 Nov). "yesterday"/昨天 → the day before only. "N days ago" → that day only.
+    "since yesterday/Friday" → from then to the row. "past week" → 7 days; "this week" → Monday to
+    the row; bare "last week" → the previous Mon–Sun. "last night"/昨晚 → the row (the night it logs).
+  - Vague counts are not guessed ("a few days", "lately", 这几天) → the row only.
+  - A span tied to another event ("for 8 days *before* the symptoms", "3 days *of* meds") is not
+    a time for the tag → the row only.
+  - A tag takes the phrase in its own clause, else one that opens the sentence on its own.
+  - Exceptions: "generally good, with the exception of a dip in the past 2 days" → those 2 days
+    are *dipped*; the general "good" names no specific day and is not counted.
+  - A named day without a row becomes a note-only day (sleep stays "not logged").
 - **Night quality dot:** rested (rested tag, not fragmented) · restless (unrested / woke often /
   cold sweat / nausea) · mixed (both, or fragmented). No dot when the notes say nothing.
 - **Not displayed:** the pharmacology column and verbatim notes (privacy; site is public).
