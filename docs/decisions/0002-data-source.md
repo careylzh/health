@@ -34,6 +34,9 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   like good/fine/normal/better/returned and *poor* if it has dip/drop/low/poor/reduced/lost (or
   "not good"). Both can apply to one day. Fixed phrases cover the rest ("ate well", "not hungry",
   胃口好/差, 食欲不振, 不想吃). Tags belong to the row they are written on, never to earlier days.
+  Negation flips a word: a negator (not, n't forms such as didn't/won't/wasn't, never, no longer,
+  cannot, without, hardly, barely; straight or curly apostrophe) up to three words before it.
+  "did not drop" → good, "won't improve" → poor, "didn't eat much" / "hardly any appetite" → poor.
 - **Night quality dot:** rested (rested tag, not fragmented) · restless (unrested / woke often /
   cold sweat / nausea) · mixed (both, or fragmented). No dot when the notes say nothing.
 - **Not displayed:** the pharmacology column and verbatim notes (privacy; site is public).

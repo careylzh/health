@@ -9,6 +9,8 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
   ("Appetite generally good", "a dip in appetite"). A sentence can count as both good and poor.
 - "not hungry" now counts as poor, not good. Added 中文 phrases: 胃口差/不好, 食欲不振, 不想吃, 吃不下.
 - Day-level only: "a dip the past 2 days" counts on the row it is written on.
+- Negation: didn't / did not / won't / will not / wasn't / never / no longer / hardly / barely …
+  flip the word that follows ("did not drop" → good, "won't improve" → poor, "didn't eat much" → poor).
 
 ### 2026-11-02 — v0.1.0: first feature — sleep presenter
 - Agent-agnostic structure: `AGENTS.md` (canonical), `CLAUDE.md` import, tool-neutral role briefs
