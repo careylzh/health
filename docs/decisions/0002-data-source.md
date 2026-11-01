@@ -24,11 +24,23 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   "sleep/slept" (e.g. "went back to sleep from 6.30-10am", "Slept 9-11am", "slept from 5.30-8.30am").
   A range is added only if it starts at or after the main wake time (± 0) and before 14:00.
   A night with ≥ 1 extra segment is **fragmented**.
-- **Mood / appetite / body tallies:** keyword counts over the observation columns (EN + 中文),
-  shown as "n of N days" — never verbatim notes.
+- **Mood / appetite / body bullets — no AI, no tokens.** Computed in the browser on every load:
+  keyword regexes (`src/data/keywords.ts`, EN + 中文, with negation stripping such as "did not
+  wake up feeling unrested") tag each day → tags are counted over the range → the top counts fill
+  fixed templates in `src/i18n.ts`. Plain day counts only ("Mood: anxiety 3 days, upbeat 2 days"),
+  no tone claims. Every template is ≤ 10 words EN / ≤ 20 chars ZH, enforced by `src/i18n.test.ts`.
+  Never verbatim notes.
+- **Night quality dot:** rested (rested tag, not fragmented) · restless (unrested / woke often /
+  cold sweat / nausea) · mixed (both, or fragmented). No dot when the notes say nothing.
 - **Not displayed:** the pharmacology column and verbatim notes (privacy; site is public).
 
+## How the "backend" works
+There is none. GitHub Pages serves static files; on every page load or refresh the viewer's
+browser fetches the CSV straight from Google (`cache: "no-store"`). The sheet *is* the database —
+edit it and the next refresh shows the change. The ↻ "Updated hh:mm" button re-fetches in place.
+
 ## Rejected
+- An LLM to summarise notes — needs a key/tokens and a server; deterministic tallies are enough.
 - Sheets API v4 with an API key — needs a secret in a public bundle for no gain.
 - Publishing the sheet "to the web" — not needed; link-sharing + gviz works.
 - Treating `0.00` as zero sleep — most such rows are pre-filled future placeholders.
