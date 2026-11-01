@@ -11,6 +11,8 @@ export type Lang = "en" | "zh";
 export const RANGES = [7, 14, 30, 90] as const;
 export type RangeDays = (typeof RANGES)[number];
 
+/** "1 day" / "2 days" — English only; 中文 has no plural. */
+const d = (n: number) => `${n} ${n === 1 ? "day" : "days"}`;
 const h1 = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
 
 const en = {
@@ -97,9 +99,8 @@ export function bulletText(b: Bullet, lang: Lang): { icon: string; text: string 
         return { icon: "🌙", text: `Averaged ${h1(b.avg)} h; ${b.fragmented} of ${b.nights} nights broken` };
       case "sleepNone": return { icon: "🌙", text: "No sleep logged in this period" };
       case "mood": {
-        const d = (n: number) => `${n} ${n === 1 ? "day" : "days"}`;
-        const text = !b.low ? `Mood: upbeat on ${b.up} of ${b.days} days`
-          : b.up === 0 ? `Mood: ${tag(b.low[0])} on ${b.low[1]} of ${b.days} days`
+        const text = !b.low ? `Mood: upbeat on ${b.up} of ${d(b.days)}`
+          : b.up === 0 ? `Mood: ${tag(b.low[0])} on ${b.low[1]} of ${d(b.days)}`
           : `Mood: ${tag(b.low[0])} ${d(b.low[1])}, upbeat ${d(b.up)}`;
         return { icon: "💗", text };
       }
@@ -107,9 +108,9 @@ export function bulletText(b: Bullet, lang: Lang): { icon: string; text: string 
       case "appetite":
         return {
           icon: "🍽️",
-          text: b.poor === 0 ? `Good appetite noted on ${b.good} ${b.good === 1 ? "day" : "days"}`
-            : b.good === 0 ? `Poor appetite noted on ${b.poor} ${b.poor === 1 ? "day" : "days"}`
-            : `Appetite: good ${b.good} days, poor ${b.poor} days`,
+          text: b.poor === 0 ? `Good appetite noted on ${d(b.good)}`
+            : b.good === 0 ? `Poor appetite noted on ${d(b.poor)}`
+            : `Appetite: good ${d(b.good)}, poor ${d(b.poor)}`,
         };
       case "appetiteNone": return { icon: "🍽️", text: "No appetite notes in this period" };
       case "body":

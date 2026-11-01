@@ -4,6 +4,9 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-02 — copy: "1 day", not "1 days"
+- English bullets now pluralise correctly in every appetite and mood variant.
+
 ### 2026-11-02 — year inference fix + end-to-end aggregation tests
 - Bug: Nov/Dec rows were filed under last year until a Jan/Feb row appeared, so a tab without
   Jan/Feb rows dropped this year's November from "past week". Now Nov/Dec are last year's only at

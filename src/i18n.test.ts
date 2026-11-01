@@ -54,3 +54,18 @@ describe("i18n parity", () => {
     expect(b).toEqual(a);
   });
 });
+
+describe("English plurals", () => {
+  it("says 1 day, not 1 days", () => {
+    const texts = ([
+      { kind: "appetite", good: 1, poor: 1 },
+      { kind: "appetite", good: 1, poor: 0 },
+      { kind: "appetite", good: 0, poor: 1 },
+      { kind: "mood", low: null, up: 1, days: 1 },
+      { kind: "mood", low: ["anxious", 1], up: 0, days: 1 },
+      { kind: "mood", low: ["anxious", 1], up: 1, days: 1 },
+    ] as Bullet[]).map((b) => bulletText(b, "en").text);
+    for (const t of texts) expect(t).not.toMatch(/\b1 days\b/);
+    expect(texts[0]).toBe("Appetite: good 1 day, poor 1 day");
+  });
+});
