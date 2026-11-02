@@ -17,6 +17,10 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
   average 7.5 h over 22 logged nights hand-checked against the sheet. Not yet walked on a real
   phone/iPad (TODO #1).
 - No backend: the browser fetches the sheet CSV on every load (see decision 0002).
+- `sleep-log/` (2026-11-03): **Sleep Log** Telegram bot. It asks for sleep and wake time at 08:00,
+  writes F/G and replies with the 7-day average (decision 0003). Code and 28 pytest tests pass, and
+  the logic gives the hand-checked 6.8 h on the live sheet. **Not yet run against Telegram or
+  Google:** it needs a BotFather token and a service account key (see `sleep-log/README.md`).
 
 ## Next
 Top of [TODO.md](TODO.md).

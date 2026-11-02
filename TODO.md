@@ -3,6 +3,8 @@
 State → [HANDOFF.md](HANDOFF.md). Tick a box only for behaviour you observed (see AGENTS.md).
 
 ## Next up
+- [ ] Sleep Log bot: create the bot and service account, run `/log` end to end, check that F/G
+      are written to today's row, and choose where it runs (Mac launchd or an always-on box).
 - [ ] Walk the live site on a real phone and iPad in both languages; note anything cluttered.
 - [ ] "Share/present" mode: hide the dropdown and toggle, auto-advance screens every ~8 s.
 - [ ] Custom date range (from/to) in addition to the presets.

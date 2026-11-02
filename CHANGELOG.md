@@ -4,6 +4,10 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-03 — Sleep Log Telegram bot
+- New `sleep-log/` folder: a Telegram bot that asks at 08:00 when you slept and woke, writes
+  columns F/G of today's row, and replies with the past 7 days' average (logged nights only).
+
 ### 2026-11-02 — time phrases place tags on the days they name
 - "a dip in the past 2 days" on 2 Nov now counts on 1 and 2 Nov; "depressed yesterday" counts on
   the day before. Vague phrases ("a few days", "lately") are not guessed. Spans tied to another
