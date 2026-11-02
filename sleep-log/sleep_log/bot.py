@@ -76,6 +76,7 @@ async def morning(ctx: ContextTypes.DEFAULT_TYPE) -> None:
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not allowed(update, ctx):
         # Lets the owner find their chat id during setup; nobody else can do anything.
+        log.info("/start from chat id %s (not the configured chat)", update.effective_chat.id)
         await update.message.reply_text(f"Your chat id is {update.effective_chat.id}.")
         return
     await update.message.reply_text(HELP.format(at=ctx.bot_data["at"]))
@@ -167,7 +168,7 @@ def main() -> None:
 
     tz = ZoneInfo(env("TIMEZONE", "Asia/Singapore"))
     hh, mm = (int(x) for x in env("ASK_AT", "08:00").split(":"))
-    chat_id = int(env("TELEGRAM_CHAT_ID", "0"))
+    chat_id = int(env("TELEGRAM_CHAT_ID", "0") or 0)
     gid = env("SHEET_FALLBACK_GID", "483177940")
 
     app = Application.builder().token(env("TELEGRAM_BOT_TOKEN")).post_init(post_init).build()
