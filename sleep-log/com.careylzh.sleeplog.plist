@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Keeps the bot running on a Mac. Replace REPO with the absolute path to this folder. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.careylzh.sleeplog</string>
+  <key>WorkingDirectory</key><string>REPO</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>REPO/.venv/bin/python</string><string>-m</string><string>sleep_log.bot</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>REPO/sleep-log.log</string>
+  <key>StandardErrorPath</key><string>REPO/sleep-log.log</string>
+</dict>
+</plist>

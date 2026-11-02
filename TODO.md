@@ -3,6 +3,8 @@
 State → [HANDOFF.md](HANDOFF.md). Tick a box only for behaviour you observed (see AGENTS.md).
 
 ## Next up
+- [ ] Sleep Log bot: choose where it runs for good (Mac launchd or an always-on box) and check
+      that a real 08:00 question arrives.
 - [ ] Walk the live site on a real phone and iPad in both languages; note anything cluttered.
 - [ ] "Share/present" mode: hide the dropdown and toggle, auto-advance screens every ~8 s.
 - [ ] Custom date range (from/to) in addition to the presets.
