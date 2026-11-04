@@ -26,6 +26,16 @@ read-only with no secrets (decision 0002). Writing to the sheet needs credential
 - **Average** = the same rule as the website (Duration if > 0, else F→G). Unlogged nights are left
   out, and the reply says "n of 7 nights logged".
 
+## Amendment 2026-11-04
+- **Remarks:** a third question writes column I. It is added below any existing text and never
+  replaces it. It is written RAW so text like "=..." stays plain text. The header check now also
+  requires "remark" in I.
+- **Skip when logged:** the morning job reads the sheet. It skips the question if today's row has
+  both F and G, and asks anyway if the sheet can't be read. The check uses the sheet, not the
+  bot's memory, so it survives restarts and also covers rows typed by hand.
+- **Catch-up:** if the process starts between ASK_AT and ASK_AT+4 h, it asks once at startup
+  (still subject to the skip).
+
 ## Rejected
 - Cloudflare Worker / GitHub Actions cron: no server to run, but Actions cron is often late, and a
   Worker would need hand-rolled Google JWT signing. Too much for one user.
