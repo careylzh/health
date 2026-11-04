@@ -7,8 +7,9 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
 | Where | Version | Note |
 |---|---|---|
 | GitHub Pages — https://careylzh.github.io/health/ | see `package.json` | deployed by `.github/workflows/deploy.yml` on every push to `main` |
+| Sleep Log bot — DigitalOcean droplet `sleep-log-tele-bot` (165.245.190.59) | `main` @ deploy time | systemd `sleep-log`; ship with `sleep-log/deploy/deploy.sh` (decision 0004) |
 
-## State (2026-11-02)
+## State (2026-11-04)
 - Agent structure in place (AGENTS.md + role briefs + Claude wrappers).
 - Feature 1 built and pushed: four snap-scrolling screens — average hours (hero), night-by-night
   stacked chart with quality dots, broken-sleep count, and four at-a-glance bullets. Range dropdown
@@ -22,11 +23,12 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
   2026-11-03: `/log` wrote 22:00 / 03:00 to the 3/11 row of the live sheet, and the sheet's formula
   set Duration to 5.00. Service account `sleep-log@sleep-log-513522.iam.gserviceaccount.com` has
   Editor access. The token and key live only in `sleep-log/.env` and `service-account.json`
-  (gitignored, on Carey's Mac). 2026-11-04: added a remarks question (column I) and skips the
+  (gitignored; on Carey's Mac and the droplet). 2026-11-04: added a remarks question (column I) and skips the
   08:00 question when today is already logged (34 pytest tests; checked read-only against the live
-  sheet). **Not running anywhere:** on 2026-11-04 Telegram showed no webhook and no other poller.
-  It only ran inside the 3 Nov Claude session, and it is *not* deployed on Google Cloud. That
-  project only holds the service account. Hosting is TODO #1.
+  sheet). **Deployed 2026-11-04** on the DigitalOcean droplet
+  (decision 0004). Verified: systemd active and enabled, scheduler added the `morning` job, the droplet
+  read the sheet's tab list with the service account, and Telegram returned a 409 to a second poller.
+  **Not yet seen:** a real 08:00 SGT question (first one due 2026-11-05).
 
 ## Next
 Top of [TODO.md](TODO.md).

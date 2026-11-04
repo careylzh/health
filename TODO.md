@@ -3,9 +3,8 @@
 State → [HANDOFF.md](HANDOFF.md). Tick a box only for behaviour you observed (see AGENTS.md).
 
 ## Next up
-- [ ] Sleep Log bot: deploy to GCP project `sleep-log-513522` (not the Mac — Carey's laptop is
-      not on 24/7). As of 2026-11-04 nothing is deployed there: Compute Engine API off, no Cloud
-      Run services, billing not set up. Then check that a real 08:00 question arrives.
+- [ ] Sleep Log bot: deployed to the DigitalOcean droplet 2026-11-04. Check that the 08:00 SGT
+      question arrives on 2026-11-05, then tick this.
 - [ ] Walk the live site on a real phone and iPad in both languages; note anything cluttered.
 - [ ] "Share/present" mode: hide the dropdown and toggle, auto-advance screens every ~8 s.
 - [ ] Custom date range (from/to) in addition to the presets.

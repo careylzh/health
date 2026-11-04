@@ -56,16 +56,24 @@ Past 7 days: avg 6.8 h (5 of 7 nights logged).
 
 The bot has to be running at 08:00, because it polls Telegram and has no webhook or public URL.
 
-- **On this Mac:** replace `REPO` in `com.careylzh.sleeplog.plist` with the absolute path to this
-  folder, then:
-  ```bash
-  cp com.careylzh.sleeplog.plist ~/Library/LaunchAgents/
-  launchctl load ~/Library/LaunchAgents/com.careylzh.sleeplog.plist
-  ```
-  If the Mac is asleep at 08:00, the question should come when it wakes, up to noon. This has not
-  been checked on a real sleep/wake cycle. For a reliable 08:00, use an always-on machine.
-- **Always-on machine** (Raspberry Pi, small VPS): the same three install commands, then run the
-  bot under `systemd` or `tmux`.
+**It runs on a DigitalOcean droplet** (decision 0004): `sleep-log-tele-bot`, `165.245.190.59`,
+Ubuntu 24.04, SGP1, 512 MB + 1 GB swap. It runs as the `sleeplog` user from `/opt/sleep-log`
+under systemd (`deploy/sleep-log.service`), which restarts it on crash and starts it on boot.
+**Do not run it on the Mac too.** Two pollers fight over updates (Telegram 409 Conflict).
+
+- **Ship a change:** `deploy/deploy.sh`. It copies the code, `.env` and `service-account.json`,
+  reinstalls requirements and restarts the bot.
+- **Logs / status:** `ssh root@165.245.190.59 journalctl -u sleep-log -f` ·
+  `systemctl status sleep-log`.
+- **New droplet from scratch:** as root, add swap (`fallocate -l 1G /swapfile`, then `mkswap`,
+  `swapon` and an fstab line). Run `apt install python3-venv rsync`, then
+  `useradd --system --home /opt/sleep-log --shell /usr/sbin/nologin sleeplog`. Create
+  `/opt/sleep-log` owned by `sleeplog`, then run `sudo -u sleeplog python3 -m venv
+  /opt/sleep-log/.venv`, then `deploy/deploy.sh root@NEW_IP` and
+  `systemctl enable sleep-log`.
+
+`com.careylzh.sleeplog.plist` (launchd on the Mac) is kept only for reference. The Mac is not on
+24/7, so don't use it for hosting.
 
 ## Tests
 

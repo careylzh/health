@@ -4,6 +4,11 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-04 — Sleep Log bot hosted on DigitalOcean
+- The bot runs 24/7 on droplet `sleep-log-tele-bot` (SGP1) under systemd, as user `sleeplog`
+  (decision 0004). Added `sleep-log/deploy/` (unit file and `deploy.sh`). The README no longer
+  points to the Mac for hosting.
+
 ### 2026-11-04 — Sleep Log: remarks question, skip when already logged
 - After sleep and wake, the bot asks for a remark and writes it to column I (remarks). It adds the
   remark below any text already in the cell and never replaces it. `skip` leaves the cell alone.
