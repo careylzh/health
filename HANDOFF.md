@@ -22,7 +22,11 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
   2026-11-03: `/log` wrote 22:00 / 03:00 to the 3/11 row of the live sheet, and the sheet's formula
   set Duration to 5.00. Service account `sleep-log@sleep-log-513522.iam.gserviceaccount.com` has
   Editor access. The token and key live only in `sleep-log/.env` and `service-account.json`
-  (gitignored, on Carey's Mac). **Not yet run as a lasting service:** it ran from a Claude session.
+  (gitignored, on Carey's Mac). 2026-11-04: added a remarks question (column I) and skips the
+  08:00 question when today is already logged (34 pytest tests; checked read-only against the live
+  sheet). **Not running anywhere:** on 2026-11-04 Telegram showed no webhook and no other poller.
+  It only ran inside the 3 Nov Claude session, and it is *not* deployed on Google Cloud. That
+  project only holds the service account. Hosting is TODO #1.
 
 ## Next
 Top of [TODO.md](TODO.md).

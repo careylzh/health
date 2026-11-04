@@ -8,6 +8,8 @@ from sleep_log.logic import (
     clock_minutes,
     find_row,
     free_row,
+    is_logged,
+    merge_remarks,
     nightly_hours,
     parse_time,
     row_dates,
@@ -88,3 +90,16 @@ def test_week_average_counts_logged_nights_only():
 def test_check_header():
     assert check_header(HEADER) is None
     assert check_header(["Dates", "", "", "", "", "remarks", "x"]) is not None
+    assert check_header(HEADER[:8] + ["notes"]) is not None  # I must be remarks
+
+
+def test_is_logged_needs_both_times():
+    assert is_logged(["3/11", "", "", "", "", "23:00", "07:00"])
+    assert not is_logged(["3/11", "", "", "", "", "23:00", ""])
+    assert not is_logged(["3/11"])
+
+
+def test_merge_remarks_appends_never_replaces():
+    assert merge_remarks("", "new") == "new"
+    assert merge_remarks("typed by hand", "new") == "typed by hand\nnew"
+    assert merge_remarks("same", " same ") == "same"

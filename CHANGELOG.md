@@ -4,6 +4,15 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-04 — Sleep Log: remarks question, skip when already logged
+- After sleep and wake, the bot asks for a remark and writes it to column I (remarks). It adds the
+  remark below any text already in the cell and never replaces it. `skip` leaves the cell alone.
+- The 08:00 question is skipped when today's row already has sleep and wake time (from `/log`
+  earlier, or typed into the sheet by hand). If the bot starts after 08:00 and before 12:00, it
+  asks then.
+- Found 2026-11-04: no 08:00 message arrived because the bot wasn't running anywhere (it only ever
+  ran inside the 3 Nov Claude session).
+
 ### 2026-11-03 — Sleep Log Telegram bot
 - New `sleep-log/` folder: a Telegram bot that asks at 08:00 when you slept and woke, writes
   columns F/G of today's row, and replies with the past 7 days' average (logged nights only).

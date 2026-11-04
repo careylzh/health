@@ -8,8 +8,8 @@ from __future__ import annotations
 import re
 from datetime import date, timedelta
 
-# Column indexes (0-based) in the year tab. The user asked for F (sleep) and G (wake).
-COL_DATE, COL_DURATION, COL_SLEEP, COL_WAKE = 0, 4, 5, 6
+# Column indexes (0-based) in the year tab: F (sleep), G (wake) and I (remarks) are written.
+COL_DATE, COL_DURATION, COL_SLEEP, COL_WAKE, COL_REMARKS = 0, 4, 5, 6, 8
 
 _TIME = re.compile(
     r"^(?P<h>\d{1,2})(?:[:.]?(?P<m>\d{2}))?(?::\d{2})?\s*(?P<ap>am|pm|a\.m\.|p\.m\.)?$", re.I
@@ -152,11 +152,27 @@ def week_average(nights: dict[date, float], today: date) -> tuple[float | None, 
 
 
 def check_header(header: list[str]) -> str | None:
-    """None if F/G look like the sleep and wake columns, else a reason not to write."""
+    """None if F/G/I look like the sleep, wake and remarks columns, else a reason not to write."""
     f, g = _cell(header, COL_SLEEP).lower(), _cell(header, COL_WAKE).lower()
     if "sleep" not in f or "wake" not in g:
         return f"Columns F/G are '{f}' / '{g}', expected sleep time / wake time — not writing."
+    i = _cell(header, COL_REMARKS).lower()
+    if "remark" not in i:
+        return f"Column I is '{i}', expected remarks — not writing."
     return None
+
+
+def is_logged(row: list[str]) -> bool:
+    """True when a row already has both sleep and wake time, so the morning question is not needed."""
+    return bool(_cell(row, COL_SLEEP) and _cell(row, COL_WAKE))
+
+
+def merge_remarks(old: str, new: str) -> str:
+    """Add a new remark below what is already in the cell. Hand-typed remarks are never replaced."""
+    old, new = old.strip(), new.strip()
+    if not old or old == new:
+        return new
+    return f"{old}\n{new}"
 
 
 def _cell(row: list[str], i: int) -> str:

@@ -1,5 +1,6 @@
-"""Sleep Log — a Telegram bot that asks for last night's sleep and wake time every morning,
-writes them to columns F and G of the health sheet, and replies with the past week's average.
+"""Sleep Log — a Telegram bot that asks for last night's sleep and wake time and a remark every
+morning, writes them to columns F, G and I of the health sheet, and replies with the past week's
+average. If today is already logged, the morning question is skipped.
 
 Run:  python -m sleep_log.bot   (settings come from environment variables / .env, see README)
 """
@@ -8,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -21,9 +22,12 @@ from .sheet import Sheet
 BOT_NAME = "Sleep Log"
 Q_SLEEP = "🌙 What time did you sleep last night? (e.g. 23:30 or 11.30pm)"
 Q_WAKE = "☀️ What time did you wake up?"
+Q_REMARKS = "📝 Any remarks for last night? (or 'skip')"
+CATCH_UP = timedelta(hours=4)  # ask late (up to 12:00 for 08:00) if the bot was down at ASK_AT
 HELP = (
     "I ask at {at} every day.\n"
     "/log — answer now · /week — past 7 days · /cancel — stop asking\n"
+    "If today is already logged, I don't ask that morning.\n"
     "Times without am/pm are 24 h. Reply 'skip' to leave one blank."
 )
 
@@ -65,11 +69,26 @@ def fmt_week(avg: float | None, n: int) -> str:
 
 async def ask(chat_id: int, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     # The date is fixed when asking, so an answer sent after midnight still lands on the right row.
-    ctx.chat_data.update(step="sleep", day=today(ctx).isoformat(), sleep=None)
+    ctx.chat_data.update(step="sleep", day=today(ctx).isoformat(), sleep=None, wake=None)
     await ctx.bot.send_message(chat_id, Q_SLEEP)
 
 
 async def morning(ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    """The daily question — skipped when today's row already has sleep and wake time
+    (answered earlier with /log, or typed into the sheet by hand)."""
+    sheet: Sheet = ctx.bot_data["sheet"]
+    day = today(ctx)
+    try:
+        done = await asyncio.to_thread(sheet.logged, day)
+    except Exception:  # can't read the sheet: asking is safer than staying silent
+        log.exception("couldn't check whether %s is logged; asking anyway", day)
+        done = False
+    if done:
+        log.info("%s already logged; skipping the morning question", day)
+        return
+    if ctx.chat_data.get("step"):
+        log.info("a /log is in progress; not interrupting it")
+        return
     await ask(ctx.job.chat_id, ctx)
 
 
@@ -114,8 +133,8 @@ async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if step == "sleep":
         both = split_times(text)
         if len(both) == 2:  # "23:30 7:00" answers both questions at once
-            ctx.chat_data["sleep"] = both[0]
-            await save(update, ctx, both[1])
+            ctx.chat_data.update(sleep=both[0], wake=both[1], step="remarks")
+            await update.message.reply_text(Q_REMARKS)
             return
         t = None if skip else parse_time(text)
         if t is None and not skip:
@@ -128,19 +147,22 @@ async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         if t is None and not skip:
             await update.message.reply_text("I didn't get that time. Try 07:00 or 7am (or 'skip').")
             return
-        await save(update, ctx, t)
+        ctx.chat_data.update(wake=t, step="remarks")
+        await update.message.reply_text(Q_REMARKS)
+    elif step == "remarks":
+        await save(update, ctx, None if skip else text)
 
 
-async def save(update: Update, ctx: ContextTypes.DEFAULT_TYPE, wake: str | None) -> None:
+async def save(update: Update, ctx: ContextTypes.DEFAULT_TYPE, remarks: str | None) -> None:
     sheet: Sheet = ctx.bot_data["sheet"]
     day = date.fromisoformat(ctx.chat_data["day"])
-    sleep = ctx.chat_data.get("sleep")
+    sleep, wake = ctx.chat_data.get("sleep"), ctx.chat_data.get("wake")
     ctx.chat_data.clear()
-    if sleep is None and wake is None:
+    if sleep is None and wake is None and remarks is None:
         await update.message.reply_text("Nothing to save.")
         return
     try:
-        old = await asyncio.to_thread(sheet.write_times, day, sleep, wake)
+        old = await asyncio.to_thread(sheet.write_entry, day, sleep, wake, remarks)
         avg, n = await asyncio.to_thread(sheet.week, today(ctx))
     except Exception as e:  # tell the user rather than failing silently
         log.exception("sheet write failed")
@@ -150,6 +172,8 @@ async def save(update: Update, ctx: ContextTypes.DEFAULT_TYPE, wake: str | None)
     replaced = [f"{lbl} was {o}" for lbl, o, new in (("sleep", old[0], sleep), ("wake", old[1], wake)) if o and new]
     if replaced:
         lines.append("(" + ", ".join(replaced) + ")")
+    if remarks is not None:
+        lines.append("Remark added." if old[2].strip() and old[2].strip() != remarks.strip() else "Remark saved.")
     lines.append(fmt_week(avg, n))
     await update.message.reply_text("\n".join(lines))
 
@@ -192,8 +216,14 @@ def main() -> None:
         # misfire grace: if the machine was asleep at 8:00, still ask when it wakes (same morning).
         app.job_queue.run_daily(
             morning, time(hh, mm, tzinfo=tz), chat_id=chat_id, name="morning",
-            job_kwargs={"misfire_grace_time": 4 * 3600, "coalesce": True},
+            job_kwargs={"misfire_grace_time": int(CATCH_UP.total_seconds()), "coalesce": True},
         )
+        # If the bot (re)starts after ASK_AT but within the catch-up window, ask now — morning()
+        # still skips it when today is already logged.
+        now = datetime.now(tz)
+        ask_at = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        if ask_at < now < ask_at + CATCH_UP:
+            app.job_queue.run_once(morning, 5, chat_id=chat_id, name="catch-up")
     else:
         log.warning("TELEGRAM_CHAT_ID not set: send /start to the bot to get it, then restart.")
     app.run_polling(allowed_updates=Update.ALL_TYPES)

@@ -4,14 +4,22 @@ Every morning at **08:00** (Asia/Singapore) the bot asks:
 
 1. 🌙 What time did you sleep last night?
 2. ☀️ What time did you wake up?
+3. 📝 Any remarks for last night?
 
-It writes the answers to **column F (Sleep time)** and **column G (Wake time)** of today's row in
-the health sheet, then replies with the **average sleep over the past 7 days**:
+It writes the answers to **column F (Sleep time)**, **column G (Wake time)** and **column I
+(remarks)** of today's row in the health sheet. Then it replies with the **average sleep over the
+past 7 days**:
 
 ```
 Saved 3/11: slept 23:30, woke 07:00.
+Remark saved.
 Past 7 days: avg 6.8 h (5 of 7 nights logged).
 ```
+
+- **Already logged → no question.** If today's row already has a sleep and a wake time (from
+  `/log` earlier, or typed into the sheet), the 08:00 question is skipped. If the bot was down at
+  08:00, it asks when it starts, up to 12:00.
+- **Remarks** are added below any text already in the cell. The bot never replaces what you typed.
 
 - **Today's row** is the row dated today (the row for the night that just ended). If today has no
   row, the bot puts the date in the first empty row after the last dated one.

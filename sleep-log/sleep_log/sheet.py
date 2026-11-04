@@ -8,11 +8,14 @@ import gspread
 
 from .logic import (
     COL_DATE,
+    COL_REMARKS,
     COL_SLEEP,
     COL_WAKE,
     check_header,
     find_row,
     free_row,
+    is_logged,
+    merge_remarks,
     nightly_hours,
     week_average,
 )
@@ -36,9 +39,12 @@ class Sheet:
                 return self._book.get_worksheet_by_id(self._fallback_gid)
             return None
 
-    def write_times(self, day: date, sleep: str | None, wake: str | None) -> tuple[str, str]:
-        """Write sleep/wake into F/G of the row for `day` (adding the date if missing).
-        None leaves that cell as it is. Returns the previous (F, G) values."""
+    def write_entry(
+        self, day: date, sleep: str | None, wake: str | None, remarks: str | None
+    ) -> tuple[str, str, str]:
+        """Write sleep/wake into F/G and remarks into I of the row for `day` (adding the date if
+        missing). None leaves that cell as it is; remarks are added below any existing text.
+        Returns the previous (F, G, I) values."""
         ws = self._tab(day.year, fallback=True)
         if ws is None:
             raise RuntimeError(f"No tab for {day.year} in the sheet")
@@ -46,20 +52,36 @@ class Sheet:
         if reason := check_header(rows[0] if rows else []):
             raise RuntimeError(reason)
         i = find_row(rows, day.year, day)
-        old = ("", "")
+        old = ("", "", "")
         if i is None:
             i = free_row(rows, day.year)
             ws.update_cell(i + 1, COL_DATE + 1, f"{day.day}/{day.month}")
         else:
             row = rows[i] + [""] * 9
-            old = (row[COL_SLEEP], row[COL_WAKE])
+            old = (row[COL_SLEEP], row[COL_WAKE], row[COL_REMARKS])
+        if remarks is not None:
+            remarks = merge_remarks(old[2], remarks)
         n = i + 1  # sheet rows are 1-based
-        for col, value in ((COL_SLEEP, sleep), (COL_WAKE, wake)):
+        for col, value, mode in (
+            # USER_ENTERED so "23:30" becomes a time value, like the hand-typed cells.
+            (COL_SLEEP, sleep, "USER_ENTERED"),
+            (COL_WAKE, wake, "USER_ENTERED"),
+            # RAW so a remark starting with "=" or "+" is kept as text, not run as a formula.
+            (COL_REMARKS, remarks, "RAW"),
+        ):
             if value is not None:
                 a1 = gspread.utils.rowcol_to_a1(n, col + 1)
-                # USER_ENTERED so "23:30" becomes a time value, like the hand-typed cells.
-                ws.update(range_name=a1, values=[[value]], value_input_option="USER_ENTERED")
+                ws.update(range_name=a1, values=[[value]], value_input_option=mode)
         return old
+
+    def logged(self, day: date) -> bool:
+        """True if the row for `day` already has both sleep and wake time."""
+        ws = self._tab(day.year, fallback=True)
+        if ws is None:
+            return False
+        rows = ws.get_all_values()
+        i = find_row(rows, day.year, day)
+        return i is not None and is_logged(rows[i])
 
     def week(self, today: date) -> tuple[float | None, int]:
         """Average main sleep over the 7 days ending today (current + previous year tabs)."""
