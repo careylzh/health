@@ -12,6 +12,7 @@
   --accent: #c2386e;        /* main sleep, brand */
   --accent-soft: #f08bb2;   /* back-to-sleep */
   --accent-glow: #ff9fc4;
+  --accent-quiet: #e9b7c9;  /* unbroken nights in the "broken" view */
   --grid: rgba(122, 74, 92, 0.12);
   --good: #2f8f5b;
   --mixed: #c98a12;
@@ -141,13 +142,21 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
 .legend li { display: inline-flex; align-items: center; gap: 6px; }
 .legend-q { margin-top: -6px; font-size: 12px; }
 .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
-.sw-main { background: var(--accent); }
+.sw-total, .sw-broken { background: var(--accent); }
+.sw-whole { background: var(--accent-quiet); }
 .sw-extra { background: var(--accent-soft); }
 .sw-avg { height: 0; border-top: 2px dashed var(--ink); width: 16px; border-radius: 0; }
 .grid { stroke: var(--grid); stroke-width: 1; }
 .axis { fill: var(--ink-3); font-size: 11px; }
-.bar-main { fill: var(--accent); }
+.bar-total, .bar-broken { fill: var(--accent); }
+.bar-whole { fill: var(--accent-quiet); }
 .bar-extra { fill: var(--accent-soft); }
+.seg { display: flex; gap: 4px; margin: 0 0 14px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--card-border); }
+.seg button {
+  flex: 1; min-height: 36px; padding: 0 8px; border: 0; border-radius: 999px; background: transparent;
+  color: var(--ink-2); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
 .bar { transition: opacity 0.15s ease; }
 .bar.dim { opacity: 0.35; }
 .hit { fill: transparent; cursor: pointer; }

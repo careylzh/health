@@ -1,20 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { totalHours, type Night } from "./data/parse";
-import { nightQuality } from "./data/stats";
+import { barFor, chartScale, CHART_VIEWS, brokenCount, nightQuality, type ChartView } from "./data/stats";
 import { appetiteState } from "./data/keywords";
 import { formatDay, STRINGS, type Lang } from "./i18n";
 
 interface Props {
   nights: Night[]; // logged nights only — empty rows are never plotted
-  avg: number | null;
+  avg: number | null; // mean total hours over logged nights
+  avgExtra: number | null; // mean back-to-sleep hours over broken nights
+  view: ChartView;
+  onView: (v: ChartView) => void;
   lang: Lang;
 }
 
 const H = 240;
 const PAD = { top: 22, right: 10, bottom: 26, left: 28 };
 
-/** Stacked bars (main + back-to-sleep) per night, dashed average line, quality dot per night. */
-export function NightChart({ nights, avg, lang }: Props) {
+/**
+ * One bar per logged night. Views: total sleep (with average + quality dots), broken vs unbroken
+ * nights, or back-to-sleep hours only (with the average over broken nights).
+ */
+export function NightChart({ nights, avg, avgExtra, view, onView, lang }: Props) {
   const t = STRINGS[lang];
   const wrap = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(360);
@@ -30,7 +36,10 @@ export function NightChart({ nights, avg, lang }: Props) {
 
   useEffect(() => setSel(null), [nights]);
 
-  const maxY = useMemo(() => Math.max(12, Math.ceil(Math.max(0, ...nights.map(totalHours)) / 2) * 2), [nights]);
+  const bars = useMemo(() => nights.map((n) => barFor(n, view)), [nights, view]);
+  const { maxY, step } = useMemo(() => chartScale(Math.max(0, ...bars.map((b) => b?.hours ?? 0)), view), [bars, view]);
+  const broken = brokenCount(nights);
+  const refLine = view === "total" ? avg : view === "extra" ? avgExtra : null;
   const plotW = width - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
   const slot = nights.length ? plotW / nights.length : plotW;
@@ -38,26 +47,42 @@ export function NightChart({ nights, avg, lang }: Props) {
   const y = (h: number) => PAD.top + plotH - (h / maxY) * plotH;
   const x = (i: number) => PAD.left + i * slot + (slot - barW) / 2;
   const r = Math.min(4, barW / 2);
-  const ticks = Array.from({ length: maxY / 4 + 1 }, (_, i) => i * 4);
+  const ticks = Array.from({ length: maxY / step + 1 }, (_, i) => i * step);
   const labelIdx = nights.length <= 1 ? [0] : [0, Math.floor((nights.length - 1) / 2), nights.length - 1];
 
   const selected = sel !== null ? nights[sel] : null;
   const ariaSummary = nights
-    .map((n) => `${formatDay(n.iso, lang)} ${t.hours(totalHours(n))}`)
+    .map((n, i) => `${formatDay(n.iso, lang)} ${t.hours(bars[i]?.hours ?? 0)}`)
     .join(", ");
 
   return (
     <div className="chart" ref={wrap}>
-      <ul className="legend">
-        <li><i className="sw sw-main" />{t.legendMain}</li>
-        <li><i className="sw sw-extra" />{t.legendExtra}</li>
-        <li><i className="sw sw-avg" />{t.legendAvg}</li>
-      </ul>
-      <ul className="legend legend-q">
-        {(["good", "mixed", "poor"] as const).map((q) => (
-          <li key={q}><i className={`dot q-${q}`} />{t.quality[q]}</li>
+      <div className="seg" role="group" aria-label={t.viewLabel}>
+        {CHART_VIEWS.map((v) => (
+          <button key={v} aria-pressed={view === v} onClick={() => onView(v)}>{t.view[v]}</button>
         ))}
+      </div>
+      <ul className="legend">
+        {view === "total" && <>
+          <li><i className="sw sw-total" />{t.legendTotal}</li>
+          <li><i className="sw sw-avg" />{t.legendAvg}</li>
+        </>}
+        {view === "broken" && <>
+          <li><i className="sw sw-broken" />{t.legendBroken(broken)}</li>
+          <li><i className="sw sw-whole" />{t.legendWhole(nights.length - broken)}</li>
+        </>}
+        {view === "extra" && <>
+          <li><i className="sw sw-extra" />{t.legendExtra}</li>
+          {avgExtra !== null && <li><i className="sw sw-avg" />{t.legendAvgExtra}</li>}
+        </>}
       </ul>
+      {view === "total" && (
+        <ul className="legend legend-q">
+          {(["good", "mixed", "poor"] as const).map((q) => (
+            <li key={q}><i className={`dot q-${q}`} />{t.quality[q]}</li>
+          ))}
+        </ul>
+      )}
       <svg
         width={width}
         height={H}
@@ -73,18 +98,13 @@ export function NightChart({ nights, avg, lang }: Props) {
           </g>
         ))}
         {nights.map((n, i) => {
-          const main = n.mainHours ?? 0;
-          const top = totalHours(n);
-          const q = nightQuality(n);
+          const b = bars[i];
+          const q = view === "total" ? nightQuality(n) : null;
           const dim = sel !== null && sel !== i;
-          const mainTopY = y(main);
           return (
             <g key={n.iso} className={dim ? "bar dim" : "bar"}>
-              <path className="bar-main" d={roundedTop(x(i), mainTopY, barW, y(0) - mainTopY, n.extraHours > 0 ? 0 : r)} />
-              {n.extraHours > 0 && (
-                <path className="bar-extra" d={roundedTop(x(i), y(top), barW, Math.max(0, mainTopY - y(top) - 2), r)} />
-              )}
-              {q && <circle className={`q q-${q}`} cx={x(i) + barW / 2} cy={y(top) - 8} r={Math.min(4, Math.max(2.5, barW / 3))} />}
+              {b && <path className={`bar-${b.kind}`} d={roundedTop(x(i), y(b.hours), barW, y(0) - y(b.hours), r)} />}
+              {q && b && <circle className={`q q-${q}`} cx={x(i) + barW / 2} cy={y(b.hours) - 8} r={Math.min(4, Math.max(2.5, barW / 3))} />}
               <rect
                 className="hit"
                 x={PAD.left + i * slot}
@@ -97,9 +117,9 @@ export function NightChart({ nights, avg, lang }: Props) {
             </g>
           );
         })}
-        {avg !== null && (
+        {refLine !== null && (
           <g className="avg">
-            <line x1={PAD.left} x2={width - PAD.right} y1={y(avg)} y2={y(avg)} />
+            <line x1={PAD.left} x2={width - PAD.right} y1={y(refLine)} y2={y(refLine)} />
           </g>
         )}
         {labelIdx.map((i) =>
@@ -117,7 +137,9 @@ export function NightChart({ nights, avg, lang }: Props) {
         )}
       </svg>
       <div className="chart-detail" aria-live="polite">
-        {selected ? <Detail n={selected} lang={lang} /> : <span className="muted">{t.tapHint}</span>}
+        {selected ? <Detail n={selected} lang={lang} />
+          : view === "extra" && broken === 0 ? <span className="muted">{t.fragNone}</span>
+          : <span className="muted">{t.tapHint}</span>}
       </div>
     </div>
   );
