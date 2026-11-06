@@ -4,6 +4,12 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-06 — Chart view toggle: total, broken, back to sleep
+- The night-by-night chart has a three-way toggle. **Total** shows total sleep per night with the
+  average and quality dots. **Broken** highlights nights with back-to-sleep segments. **Back to
+  sleep** shows only the extra hours, with the average over broken nights. The choice is
+  remembered per viewer. EN + 中文. Checked at 375 px against the live sheet.
+
 ### 2026-11-04 — Sleep Log bot hosted on DigitalOcean
 - The bot runs 24/7 on droplet `sleep-log-tele-bot` (SGP1) under systemd, as user `sleeplog`
   (decision 0004). Added `sleep-log/deploy/` (unit file and `deploy.sh`). The README no longer

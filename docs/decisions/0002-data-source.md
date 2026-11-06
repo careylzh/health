@@ -69,6 +69,13 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   - A named day without a row becomes a note-only day (sleep stays "not logged").
 - **Night quality dot:** rested (rested tag, not fragmented) · restless (unrested / woke often /
   cold sweat / nausea) · mixed (both, or fragmented). No dot when the notes say nothing.
+- **Chart views (2026-11-06):** a Total / Broken / Back-to-sleep toggle on the night-by-night
+  chart. *Total* = main + back-to-sleep as one bar (this is total sleep time, TST, as the
+  Consensus Sleep Diary counts it: sleep onset to final wake, minus time awake), with the average
+  line and quality dots. *Broken* = the same height, broken nights highlighted. *Back to sleep* =
+  extra hours only; unbroken nights draw nothing (not a zero bar), and the dashed line is the
+  average over broken nights only, labelled so. The headline average stays TST, because a total
+  on its own can hide broken nights, so the other two views exist. Rules: `barFor` / `chartScale`.
 - **Not displayed:** the pharmacology column and verbatim notes (privacy; site is public).
 
 ## How the "backend" works
