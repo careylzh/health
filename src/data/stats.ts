@@ -98,3 +98,27 @@ export function summarise(all: Night[], days: number, today: Date): Summary {
     body,
   };
 }
+
+/** What the night-by-night chart plots: total sleep, broken vs unbroken nights, or back-to-sleep hours. */
+export const CHART_VIEWS = ["total", "broken", "extra"] as const;
+export type ChartView = (typeof CHART_VIEWS)[number];
+export type BarKind = "total" | "broken" | "whole" | "extra";
+
+/** The single bar drawn for a logged night in a view; `null` = nothing to draw (no back-to-sleep). */
+export function barFor(n: Night, view: ChartView): { hours: number; kind: BarKind } | null {
+  if (view === "total") return { hours: totalHours(n), kind: "total" };
+  if (view === "broken") return { hours: totalHours(n), kind: isFragmented(n) ? "broken" : "whole" };
+  return n.extraHours > 0 ? { hours: n.extraHours, kind: "extra" } : null;
+}
+
+/** Y-axis top + tick step for a view: 12 h minimum for whole nights, 4 h minimum for back-to-sleep. */
+export function chartScale(maxHours: number, view: ChartView): { maxY: number; step: number } {
+  if (view === "extra") {
+    const maxY = Math.max(4, Math.ceil(maxHours / 2) * 2);
+    return { maxY, step: maxY <= 4 ? 1 : 2 };
+  }
+  return { maxY: Math.max(12, Math.ceil(maxHours / 2) * 2), step: 4 };
+}
+
+/** Logged nights with at least one back-to-sleep segment. */
+export const brokenCount = (nights: Night[]) => nights.filter(isFragmented).length;

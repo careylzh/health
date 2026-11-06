@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseSheet } from "./parse";
-import { inRange, nightQuality, summarise } from "./stats";
+import { barFor, chartScale, inRange, nightQuality, summarise } from "./stats";
 import { TAB_2026 } from "./fixtures";
 
 const all = parseSheet(TAB_2026, 2026);
@@ -32,5 +32,33 @@ describe("summarise", () => {
     const n = all.find((x) => x.iso === "2026-10-16")!;
     expect(nightQuality(n)).toBe("mixed");
     expect(nightQuality(all.find((x) => x.iso === "2026-01-05")!)).toBeNull();
+  });
+});
+
+describe("chart views", () => {
+  const byIso = (iso: string) => all.find((n) => n.iso === iso)!;
+  const plain = byIso("2026-10-10"); // 4 h, no back-to-sleep
+  const broken = byIso("2026-10-26"); // 6 h + 3 h back to sleep
+
+  it("total view plots main + back-to-sleep as one bar", () => {
+    expect(barFor(broken, "total")).toEqual({ hours: 9, kind: "total" });
+    expect(barFor(plain, "total")).toEqual({ hours: 4, kind: "total" });
+  });
+
+  it("broken view keeps total height and marks broken vs unbroken nights", () => {
+    expect(barFor(broken, "broken")).toEqual({ hours: 9, kind: "broken" });
+    expect(barFor(plain, "broken")).toEqual({ hours: 4, kind: "whole" });
+  });
+
+  it("extra view plots back-to-sleep hours only; unbroken nights draw nothing (not a zero bar)", () => {
+    expect(barFor(broken, "extra")).toEqual({ hours: 3, kind: "extra" });
+    expect(barFor(plain, "extra")).toBeNull();
+  });
+
+  it("scales whole nights to >= 12 h and back-to-sleep to >= 4 h", () => {
+    expect(chartScale(9, "total")).toEqual({ maxY: 12, step: 4 });
+    expect(chartScale(13.5, "broken")).toEqual({ maxY: 14, step: 4 });
+    expect(chartScale(3, "extra")).toEqual({ maxY: 4, step: 1 });
+    expect(chartScale(5, "extra")).toEqual({ maxY: 6, step: 2 });
   });
 });
