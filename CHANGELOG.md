@@ -4,6 +4,10 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-06 — Green main sleep, green pulse
+- The chart's **Total** view draws main sleep in green. Back to sleep stays light pink on top.
+- The pulsing cross beside the average on the first screen is green, matching the number.
+
 ### 2026-11-06 — Total view shows main sleep and back to sleep again
 - The chart's **Total** view stacks back-to-sleep (light pink) on top of main sleep (pink) again,
   as before the toggle was added. The bar height is still the night's total.
