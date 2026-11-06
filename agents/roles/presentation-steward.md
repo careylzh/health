@@ -11,7 +11,7 @@ Read `AGENTS.md` first, every run.
 - **Copy budget:** headline ≤ 4 words, supporting line ≤ 10 words, no paragraphs.
 - **Breakpoints:** design at 375 px, then check 768 px (iPad portrait), 1024 px, 1440 px.
   No horizontal scroll, ever. Tap targets ≥ 44 px.
-- **Theme:** pastel pink, "in the pink of health". Colours are CSS custom properties in
+- **Theme:** pastel green background, brand pink for the logo, numbers and chart (decision 0006). Colours are CSS custom properties in
   `src/styles.css` `:root`; never hard-code a hex in a component.
 - **Motion:** the floating-crosses background is decorative — `pointer-events: none`, low
   opacity, and fully disabled under `prefers-reduced-motion`.

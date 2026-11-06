@@ -1,11 +1,12 @@
-/* Pink of Health — pastel, "in the pink of health". All colours are tokens (presentation-steward). */
+/* Pink of Health — pastel green background, brand pink (decision 0006). All colours are tokens (presentation-steward). */
 :root {
   color-scheme: light;
-  --bg-1: #fff5f8;
-  --bg-2: #fde8ef;
-  --bg-3: #fbd9e5;
+  --bg-1: #f3fbf5;          /* background: pastel green */
+  --bg-2: #e4f4e9;
+  --bg-3: #d3ecdb;
+  --bg-fade: 243, 251, 245; /* --bg-1 as r,g,b for the top-bar fade */
   --card: rgba(255, 255, 255, 0.72);
-  --card-border: rgba(214, 99, 140, 0.16);
+  --card-border: rgba(74, 140, 98, 0.16);
   --ink: #3a1f2b;
   --ink-2: #7a4a5c;
   --ink-3: #8e6474;
@@ -17,9 +18,9 @@
   --good: #2f8f5b;
   --mixed: #c98a12;
   --poor: #c0392b;
-  --float-1: #f7a8c4;
-  --float-2: #fbc4d6;
-  --float-3: #f48fb1;
+  --float-1: #a9dbb9;
+  --float-2: #c6e8cf;
+  --float-3: #8fcfa6;
   --radius: 24px;
   --gutter: 16px;
   font-family: "Avenir Next", Avenir, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
@@ -35,8 +36,8 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    radial-gradient(circle at 78% 18%, rgba(255, 159, 196, 0.35), transparent 26rem),
-    radial-gradient(circle at 12% 82%, rgba(255, 196, 214, 0.45), transparent 28rem),
+    radial-gradient(circle at 78% 18%, rgba(143, 207, 166, 0.35), transparent 26rem),
+    radial-gradient(circle at 12% 82%, rgba(190, 230, 202, 0.45), transparent 28rem),
     linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
   background-attachment: fixed;
 }
@@ -50,7 +51,7 @@ button, select { font: inherit; color: inherit; }
   animation: float-up var(--duration) ease-in-out var(--delay) infinite alternate;
   will-change: transform;
 }
-.floating-cross svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 10px rgba(240, 139, 178, 0.35)); }
+.floating-cross svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 10px rgba(110, 180, 135, 0.3)); }
 .floating-cross .tone-0 { color: var(--float-1); }
 .floating-cross .tone-1 { color: var(--float-2); }
 .floating-cross .tone-2 { color: var(--float-3); }
@@ -64,7 +65,7 @@ button, select { font: inherit; color: inherit; }
   position: fixed; top: 0; left: 0; right: 0; z-index: 10;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: max(12px, env(safe-area-inset-top)) var(--gutter) 12px;
-  background: linear-gradient(to bottom, rgba(255, 245, 248, 0.92), rgba(255, 245, 248, 0));
+  background: linear-gradient(to bottom, rgba(var(--bg-fade), 0.92), rgba(var(--bg-fade), 0));
   backdrop-filter: blur(6px);
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.02em; min-width: 0; }
