@@ -4,6 +4,10 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-06 — Pastel green background
+- The background, the drifting crosses and the favicon tile are now pastel green. The name, the
+  pink logo, the numbers and the chart stay pink (decision 0006).
+
 ### 2026-11-06 — Unbroken nights in light green
 - In the chart's **Broken** view, unbroken nights are now light green (good) instead of pale pink.
   Broken nights stay pink.
