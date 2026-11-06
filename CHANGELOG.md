@@ -4,6 +4,10 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-06 — Total view shows main sleep and back to sleep again
+- The chart's **Total** view stacks back-to-sleep (light pink) on top of main sleep (pink) again,
+  as before the toggle was added. The bar height is still the night's total.
+
 ### 2026-11-06 — Green average on the first screen
 - The big average (e.g. 7.2 h / night) is now dark green instead of pink. The cross beside it and
   the logo stay pink.
