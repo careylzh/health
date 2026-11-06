@@ -12,7 +12,7 @@
   --accent: #c2386e;        /* main sleep, brand */
   --accent-soft: #f08bb2;   /* back-to-sleep */
   --accent-glow: #ff9fc4;
-  --accent-quiet: #e9b7c9;  /* unbroken nights in the "broken" view */
+  --unbroken: #8fcfa6;      /* unbroken nights in the "broken" view: light green = good */
   --grid: rgba(122, 74, 92, 0.12);
   --good: #2f8f5b;
   --mixed: #c98a12;
@@ -145,13 +145,13 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
 .legend-q { margin-top: -6px; font-size: 12px; }
 .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
 .sw-total, .sw-broken { background: var(--accent); }
-.sw-whole { background: var(--accent-quiet); }
+.sw-whole { background: var(--unbroken); }
 .sw-extra { background: var(--accent-soft); }
 .sw-avg { height: 0; border-top: 2px dashed var(--ink); width: 16px; border-radius: 0; }
 .grid { stroke: var(--grid); stroke-width: 1; }
 .axis { fill: var(--ink-3); font-size: 11px; }
 .bar-total, .bar-broken { fill: var(--accent); }
-.bar-whole { fill: var(--accent-quiet); }
+.bar-whole { fill: var(--unbroken); }
 .bar-extra { fill: var(--accent-soft); }
 .seg { display: flex; gap: 4px; margin: 0 0 14px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--card-border); }
 .seg button {

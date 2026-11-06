@@ -4,6 +4,10 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-06 — Unbroken nights in light green
+- In the chart's **Broken** view, unbroken nights are now light green (good) instead of pale pink.
+  Broken nights stay pink.
+
 ### 2026-11-06 — Medical cross replaces hearts
 - The logo, the pulse by the average, the loading screen, the favicon and the drifting background
   now use a rounded medical cross instead of hearts, so the site no longer reads as a dating site
