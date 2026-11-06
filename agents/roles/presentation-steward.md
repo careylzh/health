@@ -13,7 +13,7 @@ Read `AGENTS.md` first, every run.
   No horizontal scroll, ever. Tap targets ≥ 44 px.
 - **Theme:** pastel pink, "in the pink of health". Colours are CSS custom properties in
   `src/styles.css` `:root`; never hard-code a hex in a component.
-- **Motion:** the floating-hearts background is decorative — `pointer-events: none`, low
+- **Motion:** the floating-crosses background is decorative — `pointer-events: none`, low
   opacity, and fully disabled under `prefers-reduced-motion`.
 - **i18n:** every string lives in `src/i18n.ts` with both `en` and `zh`. Numbers and dates are
   formatted with `Intl` using the active locale.

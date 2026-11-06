@@ -4,7 +4,8 @@ import { CHART_VIEWS, summarise, type ChartView } from "./data/stats";
 import { buildBullets, countTags } from "./data/insights";
 import type { Night } from "./data/parse";
 import { bulletText, formatTime, RANGES, STRINGS, type Lang, type RangeDays } from "./i18n";
-import { HeartField } from "./HeartField";
+import { Cross } from "./Cross";
+import { CrossField } from "./CrossField";
 import { NightChart } from "./NightChart";
 
 // Per-viewer conveniences only; the app works without storage.
@@ -46,9 +47,9 @@ export default function App() {
 
   return (
     <>
-      <HeartField />
+      <CrossField />
       <header className="topbar">
-        <div className="brand"><span className="brand-mark">♥</span><span className="brand-name">{t.title}</span></div>
+        <div className="brand"><span className="brand-mark"><Cross /></span><span className="brand-name">{t.title}</span></div>
         <div className="controls">
           <select aria-label={t.heroEyebrow} value={days} onChange={(e) => setDays(Number(e.target.value) as RangeDays)}>
             {RANGES.map((d) => <option key={d} value={d}>{t.range[d]}</option>)}
@@ -64,7 +65,7 @@ export default function App() {
           <section className="screen">
             <div className="card center">
               {state.status === "loading" ? (
-                <><div className="pulse-heart">♥</div><p className="muted">{t.loading}</p></>
+                <><div className="pulse"><Cross /></div><p className="muted">{t.loading}</p></>
               ) : (
                 <><p>{t.error}</p><button className="primary" onClick={fetchData}>{t.retry}</button></>
               )}
@@ -77,7 +78,7 @@ export default function App() {
                 <p className="eyebrow">{t.heroEyebrow} · {t.range[days]}</p>
                 {summary.avgHours !== null ? (
                   <>
-                    <h1 className="big"><span className="pulse-heart small">♥</span>{summary.avgHours.toFixed(1)}<span className="unit">{t.hoursUnit}</span></h1>
+                    <h1 className="big"><span className="pulse small"><Cross /></span>{summary.avgHours.toFixed(1)}<span className="unit">{t.hoursUnit}</span></h1>
                     <p className="sub">{t.heroSub(summary.nights.length, summary.minHours!.toFixed(1), summary.maxHours!.toFixed(1))}</p>
                   </>
                 ) : (

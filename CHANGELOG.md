@@ -4,6 +4,11 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-06 — Medical cross replaces hearts
+- The logo, the pulse by the average, the loading screen, the favicon and the drifting background
+  now use a rounded medical cross instead of hearts, so the site no longer reads as a dating site
+  (decision 0005). The cross is original SVG, because SF Symbols may not be used on the web.
+
 ### 2026-11-06 — Chart view toggle: total, broken, back to sleep
 - The night-by-night chart has a three-way toggle. **Total** shows total sleep per night with the
   average and quality dots. **Broken** highlights nights with back-to-sleep segments. **Back to

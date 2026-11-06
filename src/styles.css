@@ -17,9 +17,9 @@
   --good: #2f8f5b;
   --mixed: #c98a12;
   --poor: #c0392b;
-  --heart-1: #f7a8c4;
-  --heart-2: #fbc4d6;
-  --heart-3: #f48fb1;
+  --float-1: #f7a8c4;
+  --float-2: #fbc4d6;
+  --float-3: #f48fb1;
   --radius: 24px;
   --gutter: 16px;
   font-family: "Avenir Next", Avenir, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
@@ -42,19 +42,19 @@ body {
 }
 button, select { font: inherit; color: inherit; }
 
-/* ---------- floating hearts ---------- */
-.heart-field { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-.floating-heart {
+/* ---------- floating crosses ---------- */
+.cross-field { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.floating-cross {
   position: absolute; left: var(--left); top: var(--top);
   width: var(--size); height: var(--size); opacity: var(--opacity);
-  animation: float-heart var(--duration) ease-in-out var(--delay) infinite alternate;
+  animation: float-up var(--duration) ease-in-out var(--delay) infinite alternate;
   will-change: transform;
 }
-.floating-heart svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 10px rgba(240, 139, 178, 0.35)); }
-.heart-fill.tone-0 { fill: var(--heart-1); }
-.heart-fill.tone-1 { fill: var(--heart-2); }
-.heart-fill.tone-2 { fill: var(--heart-3); }
-@keyframes float-heart {
+.floating-cross svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 10px rgba(240, 139, 178, 0.35)); }
+.floating-cross .tone-0 { color: var(--float-1); }
+.floating-cross .tone-1 { color: var(--float-2); }
+.floating-cross .tone-2 { color: var(--float-3); }
+@keyframes float-up {
   from { transform: translate3d(0, 30px, 0) rotate(-12deg) scale(0.95); }
   to { transform: translate3d(var(--drift), -120px, 0) rotate(14deg) scale(1.05); }
 }
@@ -72,6 +72,7 @@ button, select { font: inherit; color: inherit; }
   display: grid; place-items: center; width: 34px; height: 34px; flex: none;
   border-radius: 11px; color: var(--accent); background: var(--card); border: 1px solid var(--card-border);
 }
+.brand-mark svg { width: 18px; height: 18px; display: block; }
 .brand-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 420px) { .brand-name { display: none; } }
 .controls { display: flex; gap: 8px; flex: none; }
@@ -130,9 +131,10 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
   position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
   color: var(--accent); font-size: 28px; text-decoration: none; animation: bob 2.2s ease-in-out infinite;
 }
-.pulse-heart { display: inline-block; color: var(--accent); font-size: 44px; animation: beat 1.4s ease-in-out infinite; }
-.pulse-heart.small { font-size: 0.22em; align-self: center; margin-right: 0.05em; }
-@keyframes beat { 0%, 100% { transform: scale(1); } 14% { transform: scale(1.18); } 28% { transform: scale(1); } 42% { transform: scale(1.12); } }
+.pulse { display: inline-block; color: var(--accent); font-size: 44px; animation: pulse 2.4s ease-in-out infinite; }
+.pulse svg { width: 1em; height: 1em; display: block; }
+.pulse.small { font-size: 0.2em; align-self: center; margin-right: 0.1em; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.85; } }
 @keyframes bob { 50% { transform: translate(-50%, 6px); } }
 
 /* ---------- chart ---------- */
