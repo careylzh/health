@@ -40,9 +40,9 @@ describe("chart views", () => {
   const plain = byIso("2026-10-10"); // 4 h, no back-to-sleep
   const broken = byIso("2026-10-26"); // 6 h + 3 h back to sleep
 
-  it("total view plots main + back-to-sleep as one bar", () => {
-    expect(barFor(broken, "total")).toEqual({ hours: 9, kind: "total" });
-    expect(barFor(plain, "total")).toEqual({ hours: 4, kind: "total" });
+  it("total view stacks back-to-sleep on top of main sleep", () => {
+    expect(barFor(broken, "total")).toEqual({ hours: 9, kind: "total", main: 6 });
+    expect(barFor(plain, "total")).toEqual({ hours: 4, kind: "total", main: 4 });
   });
 
   it("broken view keeps total height and marks broken vs unbroken nights", () => {

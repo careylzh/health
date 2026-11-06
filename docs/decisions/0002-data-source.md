@@ -70,7 +70,7 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
 - **Night quality dot:** rested (rested tag, not fragmented) · restless (unrested / woke often /
   cold sweat / nausea) · mixed (both, or fragmented). No dot when the notes say nothing.
 - **Chart views (2026-11-06):** a Total / Broken / Back-to-sleep toggle on the night-by-night
-  chart. *Total* = main + back-to-sleep as one bar (this is total sleep time, TST, as the
+  chart. *Total* = main sleep with back-to-sleep stacked on top in a lighter pink (this is total sleep time, TST, as the
   Consensus Sleep Diary counts it: sleep onset to final wake, minus time awake), with the average
   line and quality dots. *Broken* = the same height; broken nights in brand pink, unbroken in light green (good). *Back to sleep* =
   extra hours only; unbroken nights draw nothing (not a zero bar), and the dashed line is the

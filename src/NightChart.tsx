@@ -17,7 +17,8 @@ const H = 240;
 const PAD = { top: 22, right: 10, bottom: 26, left: 28 };
 
 /**
- * One bar per logged night. Views: total sleep (with average + quality dots), broken vs unbroken
+ * One bar per logged night. Views: total sleep stacked as main + back-to-sleep (with average +
+ * quality dots), broken vs unbroken
  * nights, or back-to-sleep hours only (with the average over broken nights).
  */
 export function NightChart({ nights, avg, avgExtra, view, onView, lang }: Props) {
@@ -64,7 +65,8 @@ export function NightChart({ nights, avg, avgExtra, view, onView, lang }: Props)
       </div>
       <ul className="legend">
         {view === "total" && <>
-          <li><i className="sw sw-total" />{t.legendTotal}</li>
+          <li><i className="sw sw-total" />{t.legendMain}</li>
+          <li><i className="sw sw-extra" />{t.legendExtra}</li>
           <li><i className="sw sw-avg" />{t.legendAvg}</li>
         </>}
         {view === "broken" && <>
@@ -103,7 +105,12 @@ export function NightChart({ nights, avg, avgExtra, view, onView, lang }: Props)
           const dim = sel !== null && sel !== i;
           return (
             <g key={n.iso} className={dim ? "bar dim" : "bar"}>
-              {b && <path className={`bar-${b.kind}`} d={roundedTop(x(i), y(b.hours), barW, y(0) - y(b.hours), r)} />}
+              {b && b.main !== undefined && b.main < b.hours ? (
+                <>
+                  <path className="bar-total" d={roundedTop(x(i), y(b.main), barW, y(0) - y(b.main), 0)} />
+                  <path className="bar-extra" d={roundedTop(x(i), y(b.hours), barW, Math.max(0, y(b.main) - y(b.hours) - 2), r)} />
+                </>
+              ) : b && <path className={`bar-${b.kind}`} d={roundedTop(x(i), y(b.hours), barW, y(0) - y(b.hours), r)} />}
               {q && b && <circle className={`q q-${q}`} cx={x(i) + barW / 2} cy={y(b.hours) - 8} r={Math.min(4, Math.max(2.5, barW / 3))} />}
               <rect
                 className="hit"

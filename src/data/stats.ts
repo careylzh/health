@@ -104,9 +104,12 @@ export const CHART_VIEWS = ["total", "broken", "extra"] as const;
 export type ChartView = (typeof CHART_VIEWS)[number];
 export type BarKind = "total" | "broken" | "whole" | "extra";
 
-/** The single bar drawn for a logged night in a view; `null` = nothing to draw (no back-to-sleep). */
-export function barFor(n: Night, view: ChartView): { hours: number; kind: BarKind } | null {
-  if (view === "total") return { hours: totalHours(n), kind: "total" };
+/**
+ * The bar drawn for a logged night in a view; `null` = nothing to draw (no back-to-sleep).
+ * In the total view, `main` splits the bar: main sleep below, back-to-sleep stacked on top.
+ */
+export function barFor(n: Night, view: ChartView): { hours: number; kind: BarKind; main?: number } | null {
+  if (view === "total") return { hours: totalHours(n), kind: "total", main: n.mainHours ?? 0 };
   if (view === "broken") return { hours: totalHours(n), kind: isFragmented(n) ? "broken" : "whole" };
   return n.extraHours > 0 ? { hours: n.extraHours, kind: "extra" } : null;
 }
