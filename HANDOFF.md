@@ -14,7 +14,8 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
 - Feature 1 built and pushed: four snap-scrolling screens — average hours (hero), night-by-night
   stacked chart with quality dots, broken-sleep count, and four at-a-glance bullets. Range dropdown
   (7/14/30/90 days), EN/中文 toggle, refresh button. 2026-11-06: the chart has a Total / Broken /
-  Back-to-sleep view toggle (decision 0002). 74 Vitest tests.
+  Back-to-sleep view toggle (decision 0002). The symbol is now a medical cross, not hearts
+  (decision 0005). 74 Vitest tests.
 - Verified 2026-11-02: preview build against the LIVE sheet at 375 px and 800 px, EN + 中文; month
   average 7.5 h over 22 logged nights hand-checked against the sheet. Not yet walked on a real
   phone/iPad (TODO #1).

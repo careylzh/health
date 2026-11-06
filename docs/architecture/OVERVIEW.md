@@ -9,7 +9,7 @@ Google Sheet (tab per year) ──gviz CSV──▶ src/data/sheet.ts   fetch cu
                                                    ▼
                                           src/App.tsx         range dropdown + language toggle, screens:
                                             Hero (avg hours) · Nights (bar chart) · Fragmented · Mood & appetite
-                                          src/HeartField.tsx  decorative floating hearts
+                                          src/CrossField.tsx  decorative floating crosses
                                           src/i18n.ts         en / zh strings
 ```
 Everything under `src/data/` is pure and unit-tested; components only render.

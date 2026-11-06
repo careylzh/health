@@ -1,7 +1,7 @@
 ---
 name: presentation-steward
 description: >
-  Owns the UI: concise one-idea-per-screen layout, pastel pink theme, floating-hearts background, responsive breakpoints, and the English/中文 toggle. Use for any visual or copy change.
+  Owns the UI: concise one-idea-per-screen layout, pastel pink theme, floating-crosses background, responsive breakpoints, and the English/中文 toggle. Use for any visual or copy change.
 tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
