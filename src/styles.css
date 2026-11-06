@@ -13,6 +13,7 @@
   --accent: #c2386e;        /* main sleep, brand */
   --accent-soft: #f08bb2;   /* back-to-sleep */
   --accent-glow: #ff9fc4;
+  --hero: #23774a;          /* the big average on the first screen (decision 0006) */
   --unbroken: #8fcfa6;      /* unbroken nights in the "broken" view: light green = good */
   --grid: rgba(122, 74, 92, 0.12);
   --good: #2f8f5b;
@@ -120,6 +121,7 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
   font-size: clamp(88px, 28vw, 168px); font-weight: 600; line-height: 1; letter-spacing: -0.06em;
   color: var(--accent);
 }
+.hero .big { color: var(--hero); }
 .big.mid { font-size: clamp(64px, 20vw, 120px); margin: 0; }
 .big.none { font-size: clamp(26px, 7vw, 40px); color: var(--ink-2); letter-spacing: -0.02em; }
 .unit { font-size: clamp(16px, 4.4vw, 22px); font-weight: 600; letter-spacing: 0; color: var(--ink-2); }
