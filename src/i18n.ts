@@ -4,7 +4,7 @@
  */
 import type { Bullet } from "./data/insights";
 import type { AppetiteState, TagKey } from "./data/keywords";
-import type { Quality } from "./data/stats";
+import type { ChartView, Quality } from "./data/stats";
 
 export type Lang = "en" | "zh";
 
@@ -31,9 +31,14 @@ const en = {
   heroSub: (n: number, lo: string, hi: string) => `${n} nights logged · ${lo}–${hi} h`,
   noData: "No nights logged in this range",
   chartTitle: "Night by night",
-  legendMain: "Main sleep",
+  viewLabel: "Chart view",
+  view: { total: "Total", broken: "Broken", extra: "Back to sleep" } as Record<ChartView, string>,
+  legendTotal: "Total sleep",
   legendExtra: "Back to sleep",
   legendAvg: "Average",
+  legendBroken: (k: number) => `Broken (${k})`,
+  legendWhole: (k: number) => `Unbroken (${k})`,
+  legendAvgExtra: "Average on broken nights",
   tapHint: "Tap a bar for details",
   fragTitle: "Broken sleep",
   fragBig: (k: number, n: number) => `${k} of ${n}`,
@@ -68,9 +73,14 @@ const zh: typeof en = {
   heroSub: (n, lo, hi) => `记录 ${n} 晚 · ${lo}–${hi} 小时`,
   noData: "此期间没有睡眠记录",
   chartTitle: "每晚睡眠",
-  legendMain: "主睡眠",
+  viewLabel: "图表视图",
+  view: { total: "总睡眠", broken: "中断", extra: "回笼觉" },
+  legendTotal: "总睡眠",
   legendExtra: "回笼觉",
   legendAvg: "平均",
+  legendBroken: (k) => `中断（${k}）`,
+  legendWhole: (k) => `未中断（${k}）`,
+  legendAvgExtra: "中断晚平均",
   tapHint: "点击柱子查看详情",
   fragTitle: "睡眠中断",
   fragBig: (k, n) => `${k} / ${n}`,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadNights } from "./data/sheet";
-import { summarise } from "./data/stats";
+import { CHART_VIEWS, summarise, type ChartView } from "./data/stats";
 import { buildBullets, countTags } from "./data/insights";
 import type { Night } from "./data/parse";
 import { bulletText, formatTime, RANGES, STRINGS, type Lang, type RangeDays } from "./i18n";
@@ -18,6 +18,7 @@ type State = { status: "loading" } | { status: "error" } | { status: "ready"; ni
 export default function App() {
   const [lang, setLang] = useState<Lang>(() => load("lang", (v) => v === '"en"' || v === '"zh"', "en"));
   const [days, setDays] = useState<RangeDays>(() => load("days", (v) => RANGES.includes(Number(v) as RangeDays), 7));
+  const [view, setView] = useState<ChartView>(() => load("view", (v) => CHART_VIEWS.includes(JSON.parse(v)), "total"));
   const [state, setState] = useState<State>({ status: "loading" });
   const t = STRINGS[lang];
 
@@ -32,6 +33,7 @@ export default function App() {
   useEffect(fetchData, [fetchData]);
   useEffect(() => { save("lang", lang); document.documentElement.lang = lang === "zh" ? "zh-CN" : "en"; document.title = t.title; }, [lang, t.title]);
   useEffect(() => save("days", days), [days]);
+  useEffect(() => save("view", view), [view]);
 
   const summary = useMemo(
     () => (state.status === "ready" ? summarise(state.nights, days, new Date()) : null),
@@ -91,7 +93,7 @@ export default function App() {
             <section className="screen" id="chart">
               <div className="card">
                 <h2>{t.chartTitle}</h2>
-                {summary.nights.length ? <NightChart nights={summary.nights} avg={summary.avgHours} lang={lang} /> : <p className="muted">{t.noData}</p>}
+                {summary.nights.length ? <NightChart nights={summary.nights} avg={summary.avgHours} avgExtra={summary.avgExtraHours} view={view} onView={setView} lang={lang} /> : <p className="muted">{t.noData}</p>}
               </div>
             </section>
 
