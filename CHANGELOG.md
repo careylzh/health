@@ -4,6 +4,10 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-06 — Green average on the first screen
+- The big average (e.g. 7.2 h / night) is now dark green instead of pink. The cross beside it and
+  the logo stay pink.
+
 ### 2026-11-06 — Pastel green background
 - The background, the drifting crosses and the favicon tile are now pastel green. The name, the
   pink logo, the numbers and the chart stay pink (decision 0006).
