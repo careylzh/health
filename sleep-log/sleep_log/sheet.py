@@ -11,7 +11,9 @@ from .logic import (
     COL_REMARKS,
     COL_SLEEP,
     COL_WAKE,
+    NOTE_COLS,
     check_header,
+    check_note_header,
     find_row,
     free_row,
     is_logged,
@@ -72,6 +74,38 @@ class Sheet:
             if value is not None:
                 a1 = gspread.utils.rowcol_to_a1(n, col + 1)
                 ws.update(range_name=a1, values=[[value]], value_input_option=mode)
+        return old
+
+    def read_note(self, day: date, kind: str) -> str:
+        """The current text of a note column for `day` ('' if the row or the text is missing)."""
+        ws = self._tab(day.year, fallback=True)
+        if ws is None:
+            return ""
+        rows = ws.get_all_values()
+        i = find_row(rows, day.year, day)
+        return "" if i is None else (rows[i] + [""] * 9)[NOTE_COLS[kind]].strip()
+
+    def write_note(self, day: date, kind: str, text: str, replace: bool) -> str:
+        """Write a note column of the row for `day` (adding the date if missing): replace the cell,
+        or add below its existing text. Returns the previous text."""
+        ws = self._tab(day.year, fallback=True)
+        if ws is None:
+            raise RuntimeError(f"No tab for {day.year} in the sheet")
+        rows = ws.get_all_values()
+        if reason := check_note_header(rows[0] if rows else [], kind):
+            raise RuntimeError(reason)
+        col = NOTE_COLS[kind]
+        i = find_row(rows, day.year, day)
+        old = ""
+        if i is None:
+            i = free_row(rows, day.year)
+            ws.update_cell(i + 1, COL_DATE + 1, f"{day.day}/{day.month}")
+        else:
+            old = (rows[i] + [""] * 9)[col].strip()
+        value = text.strip() if replace else merge_remarks(old, text)
+        a1 = gspread.utils.rowcol_to_a1(i + 1, col + 1)
+        # RAW so text starting with "=" or "+" is kept as text, not run as a formula.
+        ws.update(range_name=a1, values=[[value]], value_input_option="RAW")
         return old
 
     def logged(self, day: date) -> bool:
