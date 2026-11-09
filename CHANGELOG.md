@@ -4,6 +4,11 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-09 — Sleep Log bot: edit today's notes at any time
+- `/remark` replaces today's remarks and the reply shows the old text.
+- `/positive` and `/negative` add to today's Positive and Negative Observations.
+- Sending one with no text shows the cell, then the next message is used as the text.
+
 ### 2026-11-06 — Green main sleep, green pulse
 - The chart's **Total** view draws main sleep in green. Back to sleep stays light pink on top.
 - The pulsing cross beside the average on the first screen is green, matching the number.

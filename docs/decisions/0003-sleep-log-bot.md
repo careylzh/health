@@ -36,6 +36,17 @@ read-only with no secrets (decision 0002). Writing to the sheet needs credential
 - **Catch-up:** if the process starts between ASK_AT and ASK_AT+4 h, it asks once at startup
   (still subject to the skip).
 
+## Amendment 2026-11-09
+- **`/remark`, `/positive`, `/negative`** edit today's row at any time. They write columns I, C and
+  D as RAW text. Each write checks only the header of its own column.
+- **`/remark` replaces the cell.** Carey asked to "modify" the remarks, so this is the one exception
+  to "never replaces". The reply shows the old text so it can be restored by hand. The morning
+  question still adds below existing text.
+- **`/positive` and `/negative` only add** below existing text, because Carey asked to "add in"
+  observations.
+- An unanswered note command does not block the 08:00 question. A note command with no text is
+  refused during a `/log`, so the log's answers are not lost.
+
 ## Rejected
 - Cloudflare Worker / GitHub Actions cron: no server to run, but Actions cron is often late, and a
   Worker would need hand-rolled Google JWT signing. Too much for one user.
