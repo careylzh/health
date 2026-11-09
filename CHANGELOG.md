@@ -5,8 +5,9 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 ## [Unreleased]
 
 ### 2026-11-09 — Sleep Log bot: edit today's notes at any time
-- `/remark` replaces today's remarks and the reply shows the old text.
-- `/positive` and `/negative` add to today's Positive and Negative Observations.
+- `/remark` adds to today's remarks, on a new line below the existing text. It first replaced the
+  cell; it was changed the same day to keep earlier comments.
+- `/positive` and `/negative` do the same for today's Positive and Negative Observations.
 - Sending one with no text shows the cell, then the next message is used as the text.
 
 ### 2026-11-06 — Green main sleep, green pulse

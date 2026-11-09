@@ -19,9 +19,8 @@ class FakeSheet:
     def read_note(self, day, kind):
         return self.notes.get(kind, "")
 
-    def write_note(self, day, kind, text, replace):
-        self.note_writes.append((day, kind, text, replace))
-        return self.notes.get(kind, "")
+    def write_note(self, day, kind, text):
+        self.note_writes.append((day, kind, text))
 
     def write_entry(self, day, sleep, wake, remarks):
         self.writes.append((day, sleep, wake, remarks))
@@ -142,12 +141,11 @@ def run_cmd(kind, update, ctx, text):
     asyncio.run(bot.note_cmd(kind)(update(text), ctx))
 
 
-def test_remark_with_text_replaces_and_echoes_old_text():
+def test_remark_with_text_saves():
     ctx, sheet, _, replies, update = make()
-    sheet.notes["remark"] = "old words"
     run_cmd("remark", update, ctx, "/remark new words")
-    assert sheet.note_writes[0][1:] == ("remark", "new words", True)
-    assert "replaced" in replies[-1] and "old words" in replies[-1]
+    assert sheet.note_writes[0][1:] == ("remark", "new words")
+    assert "Remark saved" in replies[-1]
     assert ctx.chat_data == {}
 
 
@@ -156,19 +154,19 @@ def test_positive_and_negative_add_and_keep_line_breaks():
     run_cmd("positive", update, ctx, "/positive slept well\nfelt calm")
     run_cmd("negative", update, ctx, "/negative@clzhsleeplogbot headache")
     assert [w[1:] for w in sheet.note_writes] == [
-        ("positive", "slept well\nfelt calm", False),
-        ("negative", "headache", False),
+        ("positive", "slept well\nfelt calm"),
+        ("negative", "headache"),
     ]
     assert "Negative observation saved" in replies[-1]
 
 
 def test_bare_command_shows_cell_then_next_message_writes():
     ctx, sheet, _, replies, update = make()
-    sheet.notes["remark"] = "typo here"
+    sheet.notes["remark"] = "earlier words"
     run_cmd("remark", update, ctx, "/remark")
-    assert "typo here" in replies[-1] and "replace it" in replies[-1] and not sheet.note_writes
-    asyncio.run(bot.on_text(update("fixed"), ctx))
-    assert sheet.note_writes[0][1:] == ("remark", "fixed", True)
+    assert "earlier words" in replies[-1] and "to add" in replies[-1] and not sheet.note_writes
+    asyncio.run(bot.on_text(update("more words"), ctx))
+    assert sheet.note_writes[0][1:] == ("remark", "more words")
     assert ctx.chat_data == {}
 
 

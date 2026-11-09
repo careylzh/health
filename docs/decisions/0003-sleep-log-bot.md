@@ -39,11 +39,8 @@ read-only with no secrets (decision 0002). Writing to the sheet needs credential
 ## Amendment 2026-11-09
 - **`/remark`, `/positive`, `/negative`** edit today's row at any time. They write columns I, C and
   D as RAW text. Each write checks only the header of its own column.
-- **`/remark` replaces the cell.** Carey asked to "modify" the remarks, so this is the one exception
-  to "never replaces". The reply shows the old text so it can be restored by hand. The morning
-  question still adds below existing text.
-- **`/positive` and `/negative` only add** below existing text, because Carey asked to "add in"
-  observations.
+- **All three only add**, on a new line below existing text. `/remark` first replaced the cell, but
+  Carey asked the same day to keep earlier comments, so "never replaces" holds with no exception.
 - An unanswered note command does not block the 08:00 question. A note command with no text is
   refused during a `/log`, so the log's answers are not lost.
 

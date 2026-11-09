@@ -19,8 +19,8 @@ Past 7 days: avg 6.8 h (5 of 7 nights logged).
 - **Already logged → no question.** If today's row already has a sleep and a wake time (from
   `/log` earlier, or typed into the sheet), the 08:00 question is skipped. If the bot was down at
   08:00, it asks when it starts, up to 12:00.
-- **Remarks** from the morning question are added below any text already in the cell. Only
-  `/remark` replaces the cell.
+- **Remarks** are added on a new line below any text already in the cell. The bot never replaces
+  what you typed.
 
 - **Today's row** is the row dated today (the row for the night that just ended). If today has no
   row, the bot puts the date in the first empty row after the last dated one.
@@ -33,9 +33,9 @@ Past 7 days: avg 6.8 h (5 of 7 nights logged).
 - **Edit today's notes at any time:**
   | Command | Column | What it does |
   |---|---|---|
-  | `/remark text` | I (remarks) | **Replaces** the cell. The reply shows the old text. |
-  | `/positive text` | C (Positive Observations) | Adds below the existing text. |
-  | `/negative text` | D (Negative observations) | Adds below the existing text. |
+  | `/remark text` | I (remarks) | Adds on a new line below the existing text. |
+  | `/positive text` | C (Positive Observations) | Adds on a new line below the existing text. |
+  | `/negative text` | D (Negative observations) | Adds on a new line below the existing text. |
 
   Send one with no text to see the cell first. Your next message is then used as the text (`skip`
   changes nothing). "Today" is today's row, the same row `/log` writes.

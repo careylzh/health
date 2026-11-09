@@ -37,34 +37,34 @@ def rows_with_day():
     return [HEADER, ["1/3"], ["2/3", "", "good", "", "", "", "", "", "old remark"]]
 
 
-def test_remark_replaces_cell_i_as_raw_text():
+def test_remark_adds_a_new_line_in_i_as_raw_text():
     sheet, ws = sheet_with(rows_with_day())
-    assert sheet.write_note(DAY, "remark", " =new ", replace=True) == "old remark"
-    assert ws.cells == [("I3", "=new", "RAW")]
+    sheet.write_note(DAY, "remark", " =new ")
+    assert ws.cells == [("I3", "old remark\n=new", "RAW")]
 
 
 def test_positive_adds_below_existing_text_in_c():
     sheet, ws = sheet_with(rows_with_day())
-    assert sheet.write_note(DAY, "positive", "calm", replace=False) == "good"
+    sheet.write_note(DAY, "positive", "calm")
     assert ws.cells == [("C3", "good\ncalm", "RAW")]
 
 
 def test_negative_writes_d_on_a_short_row():
     sheet, ws = sheet_with([HEADER, ["2/3"]])
-    assert sheet.write_note(DAY, "negative", "tired", replace=False) == ""
+    sheet.write_note(DAY, "negative", "tired")
     assert ws.cells == [("D2", "tired", "RAW")]
 
 
 def test_missing_date_is_added_first():
     sheet, ws = sheet_with([HEADER, ["1/3"]])
-    sheet.write_note(DAY, "positive", "calm", replace=False)
+    sheet.write_note(DAY, "positive", "calm")
     assert ws.cells == [((3, 1), "2/3", None), ("C3", "calm", "RAW")]
 
 
 def test_wrong_header_refuses_to_write():
     sheet, ws = sheet_with([["Dates", "", "Something else"], ["2/3"]])
     with pytest.raises(RuntimeError, match="Column C"):
-        sheet.write_note(DAY, "positive", "calm", replace=False)
+        sheet.write_note(DAY, "positive", "calm")
     assert ws.cells == []
 
 

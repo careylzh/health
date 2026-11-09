@@ -31,8 +31,7 @@ MAX_ECHO = 3500  # keeps an echoed cell under Telegram's 4096-character message 
 HELP = (
     "I ask at {at} every day.\n"
     "/log — answer now · /week — past 7 days · /cancel — stop asking\n"
-    "/remark text — replace today's remarks\n"
-    "/positive text · /negative text — add to today's observations\n"
+    "/remark text · /positive text · /negative text — add to today's notes\n"
     "Send one of those three with no text to see what's there first.\n"
     "If today is already logged, I don't ask that morning.\n"
     "Times without am/pm are 24 h. Reply 'skip' to leave one blank."
@@ -160,24 +159,18 @@ def note_cmd(kind: str):
 def note_prompt(kind: str, day: date, current: str) -> str:
     label, when = NOTE_LABELS[kind], f"{day.day}/{day.month}"
     now = f"{label} for {when}:\n{current[:MAX_ECHO]}" if current else f"No {label.lower()} for {when} yet."
-    action = "to replace it" if kind == "remark" and current else "to add"
-    return f"{now}\n\nSend the text {action} (or 'skip')."
+    return f"{now}\n\nSend the text to add (or 'skip')."
 
 
 async def save_note(update: Update, ctx: ContextTypes.DEFAULT_TYPE, kind: str, day: date, text: str) -> None:
     sheet: Sheet = ctx.bot_data["sheet"]
-    replace = kind == "remark"  # /remark edits the cell; observations only ever grow
     try:
-        old = await asyncio.to_thread(sheet.write_note, day, kind, text, replace)
+        await asyncio.to_thread(sheet.write_note, day, kind, text)
     except Exception as e:  # tell the user rather than failing silently
         log.exception("sheet write failed")
         await update.message.reply_text(f"⚠️ Couldn't update the sheet: {e}")
         return
-    label, when = NOTE_LABELS[kind], f"{day.day}/{day.month}"
-    if replace and old:  # the old text goes in the reply so a replace can be undone by hand
-        await update.message.reply_text(f"{label} replaced for {when}. It was:\n{old[:MAX_ECHO]}")
-    else:
-        await update.message.reply_text(f"{label} saved for {when}.")
+    await update.message.reply_text(f"{NOTE_LABELS[kind]} saved for {day.day}/{day.month}.")
 
 
 async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:

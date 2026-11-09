@@ -85,9 +85,9 @@ class Sheet:
         i = find_row(rows, day.year, day)
         return "" if i is None else (rows[i] + [""] * 9)[NOTE_COLS[kind]].strip()
 
-    def write_note(self, day: date, kind: str, text: str, replace: bool) -> str:
-        """Write a note column of the row for `day` (adding the date if missing): replace the cell,
-        or add below its existing text. Returns the previous text."""
+    def write_note(self, day: date, kind: str, text: str) -> None:
+        """Add text on a new line below a note column of the row for `day` (adding the date if
+        missing). Existing text is never replaced."""
         ws = self._tab(day.year, fallback=True)
         if ws is None:
             raise RuntimeError(f"No tab for {day.year} in the sheet")
@@ -101,12 +101,10 @@ class Sheet:
             i = free_row(rows, day.year)
             ws.update_cell(i + 1, COL_DATE + 1, f"{day.day}/{day.month}")
         else:
-            old = (rows[i] + [""] * 9)[col].strip()
-        value = text.strip() if replace else merge_remarks(old, text)
+            old = (rows[i] + [""] * 9)[col]
         a1 = gspread.utils.rowcol_to_a1(i + 1, col + 1)
         # RAW so text starting with "=" or "+" is kept as text, not run as a formula.
-        ws.update(range_name=a1, values=[[value]], value_input_option="RAW")
-        return old
+        ws.update(range_name=a1, values=[[merge_remarks(old, text)]], value_input_option="RAW")
 
     def logged(self, day: date) -> bool:
         """True if the row for `day` already has both sleep and wake time."""
