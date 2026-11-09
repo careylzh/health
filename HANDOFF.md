@@ -7,7 +7,7 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
 | Where | Version | Note |
 |---|---|---|
 | GitHub Pages — https://careylzh.github.io/health/ | see `package.json` | deployed by `.github/workflows/deploy.yml` on every push to `main` |
-| Sleep Log bot — DigitalOcean droplet `sleep-log-tele-bot` (165.245.190.59) | `main` @ deploy time | systemd `sleep-log`; push to `main` deploys via GitHub Actions once set up (decision 0007), else `sleep-log/deploy/deploy.sh` |
+| Sleep Log bot — DigitalOcean droplet `sleep-log-tele-bot` (165.245.190.59) | `main` @ deploy time | systemd `sleep-log`; push to `main` deploys via GitHub Actions (decision 0007; first run green 2026-11-09), or `sleep-log/deploy/deploy.sh` from the Mac |
 
 ## State (2026-11-04)
 - Agent structure in place (AGENTS.md + role briefs + Claude wrappers).
