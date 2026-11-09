@@ -1,6 +1,7 @@
 """Sleep Log — a Telegram bot that asks for last night's sleep and wake time and a remark every
 morning, writes them to columns F, G and I of the health sheet, and replies with the past week's
-average. If today is already logged, the morning question is skipped.
+average. If today is already logged, the morning question is skipped. /remark, /positive and
+/negative edit today's notes at any time.
 
 Run:  python -m sleep_log.bot   (settings come from environment variables / .env, see README)
 """
@@ -24,9 +25,15 @@ Q_SLEEP = "🌙 What time did you sleep last night? (e.g. 23:30 or 11.30pm)"
 Q_WAKE = "☀️ What time did you wake up?"
 Q_REMARKS = "📝 Any remarks for last night? (or 'skip')"
 CATCH_UP = timedelta(hours=4)  # ask late (up to 12:00 for 08:00) if the bot was down at ASK_AT
+LOG_STEPS = ("sleep", "wake", "remarks")
+NOTE_LABELS = {"remark": "Remark", "positive": "Positive observation", "negative": "Negative observation"}
+MAX_ECHO = 3500  # keeps an echoed cell under Telegram's 4096-character message limit
 HELP = (
     "I ask at {at} every day.\n"
     "/log — answer now · /week — past 7 days · /cancel — stop asking\n"
+    "/remark text — replace today's remarks\n"
+    "/positive text · /negative text — add to today's observations\n"
+    "Send one of those three with no text to see what's there first.\n"
     "If today is already logged, I don't ask that morning.\n"
     "Times without am/pm are 24 h. Reply 'skip' to leave one blank."
 )
@@ -86,7 +93,7 @@ async def morning(ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if done:
         log.info("%s already logged; skipping the morning question", day)
         return
-    if ctx.chat_data.get("step"):
+    if ctx.chat_data.get("step") in LOG_STEPS:  # an unanswered /remark must not block the question
         log.info("a /log is in progress; not interrupting it")
         return
     await ask(ctx.job.chat_id, ctx)
@@ -120,6 +127,59 @@ async def cmd_week(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(fmt_week(avg, n))
 
 
+def note_cmd(kind: str):
+    """Handler for /remark, /positive and /negative. With text it writes today's cell at once. With
+    no text it shows the cell and takes the next message."""
+
+    async def handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+        if not allowed(update, ctx):
+            return
+        if ctx.chat_data.get("step") == "note":  # a newer note command replaces an unanswered one
+            ctx.chat_data.clear()
+        day = today(ctx)
+        parts = update.message.text.split(None, 1)  # not ctx.args: that would lose line breaks
+        if len(parts) == 2:
+            await save_note(update, ctx, kind, day, parts[1])
+            return
+        if ctx.chat_data.get("step") in LOG_STEPS:
+            await update.message.reply_text("Finish /log first, or /cancel.")
+            return
+        sheet: Sheet = ctx.bot_data["sheet"]
+        try:
+            current = await asyncio.to_thread(sheet.read_note, day, kind)
+        except Exception as e:
+            log.exception("sheet read failed")
+            await update.message.reply_text(f"⚠️ Couldn't read the sheet: {e}")
+            return
+        ctx.chat_data.update(step="note", note=kind, day=day.isoformat())
+        await update.message.reply_text(note_prompt(kind, day, current))
+
+    return handler
+
+
+def note_prompt(kind: str, day: date, current: str) -> str:
+    label, when = NOTE_LABELS[kind], f"{day.day}/{day.month}"
+    now = f"{label} for {when}:\n{current[:MAX_ECHO]}" if current else f"No {label.lower()} for {when} yet."
+    action = "to replace it" if kind == "remark" and current else "to add"
+    return f"{now}\n\nSend the text {action} (or 'skip')."
+
+
+async def save_note(update: Update, ctx: ContextTypes.DEFAULT_TYPE, kind: str, day: date, text: str) -> None:
+    sheet: Sheet = ctx.bot_data["sheet"]
+    replace = kind == "remark"  # /remark edits the cell; observations only ever grow
+    try:
+        old = await asyncio.to_thread(sheet.write_note, day, kind, text, replace)
+    except Exception as e:  # tell the user rather than failing silently
+        log.exception("sheet write failed")
+        await update.message.reply_text(f"⚠️ Couldn't update the sheet: {e}")
+        return
+    label, when = NOTE_LABELS[kind], f"{day.day}/{day.month}"
+    if replace and old:  # the old text goes in the reply so a replace can be undone by hand
+        await update.message.reply_text(f"{label} replaced for {when}. It was:\n{old[:MAX_ECHO]}")
+    else:
+        await update.message.reply_text(f"{label} saved for {when}.")
+
+
 async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not allowed(update, ctx):
         return
@@ -130,7 +190,14 @@ async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     skip = text.lower() in ("skip", "-", "?")
-    if step == "sleep":
+    if step == "note":
+        kind, day = ctx.chat_data["note"], date.fromisoformat(ctx.chat_data["day"])
+        ctx.chat_data.clear()
+        if skip:
+            await update.message.reply_text("OK, nothing changed.")
+        else:
+            await save_note(update, ctx, kind, day, text)
+    elif step == "sleep":
         both = split_times(text)
         if len(both) == 2:  # "23:30 7:00" answers both questions at once
             ctx.chat_data.update(sleep=both[0], wake=both[1], step="remarks")
@@ -210,6 +277,8 @@ def main() -> None:
     app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(CommandHandler("week", cmd_week))
     app.add_handler(CommandHandler("cancel", cmd_cancel))
+    for kind in NOTE_LABELS:
+        app.add_handler(CommandHandler(kind, note_cmd(kind)))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
 
     if chat_id:

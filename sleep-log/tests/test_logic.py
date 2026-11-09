@@ -5,6 +5,7 @@ import pytest
 
 from sleep_log.logic import (
     check_header,
+    check_note_header,
     clock_minutes,
     find_row,
     free_row,
@@ -18,7 +19,7 @@ from sleep_log.logic import (
     week_average,
 )
 
-HEADER = ["Dates", "Pharm", "Pos", "Neg", "Duration", "Sleep time", "Wake time", "reasons", "remarks"]
+HEADER = ["Dates", "Pharm", "Positive Observations", "Negative observations ", "Duration", "Sleep time", "Wake time", "reasons", "remarks"]
 
 
 def r(d="", dur="", s="", w=""):
@@ -91,6 +92,15 @@ def test_check_header():
     assert check_header(HEADER) is None
     assert check_header(["Dates", "", "", "", "", "remarks", "x"]) is not None
     assert check_header(HEADER[:8] + ["notes"]) is not None  # I must be remarks
+
+
+def test_check_note_header_checks_only_that_column():
+    for kind in ("remark", "positive", "negative"):
+        assert check_note_header(HEADER, kind) is None
+    shifted = ["Dates", "Negative", "Positive", "Duration"] + HEADER[4:]
+    assert "Column C" not in (check_note_header(shifted, "positive") or "")
+    assert "Column D" in check_note_header(shifted, "negative")
+    assert "Column I" in check_note_header(HEADER[:8], "remark")
 
 
 def test_is_logged_needs_both_times():

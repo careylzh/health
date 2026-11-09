@@ -8,8 +8,11 @@ from __future__ import annotations
 import re
 from datetime import date, timedelta
 
-# Column indexes (0-based) in the year tab: F (sleep), G (wake) and I (remarks) are written.
-COL_DATE, COL_DURATION, COL_SLEEP, COL_WAKE, COL_REMARKS = 0, 4, 5, 6, 8
+# Column indexes (0-based) in the year tab. Written: C/D (observations), F/G (times), I (remarks).
+COL_DATE, COL_POSITIVE, COL_NEGATIVE, COL_DURATION, COL_SLEEP, COL_WAKE, COL_REMARKS = 0, 2, 3, 4, 5, 6, 8
+
+# The columns /remark, /positive and /negative write to. Each key must appear in that column's header.
+NOTE_COLS = {"remark": COL_REMARKS, "positive": COL_POSITIVE, "negative": COL_NEGATIVE}
 
 _TIME = re.compile(
     r"^(?P<h>\d{1,2})(?:[:.]?(?P<m>\d{2}))?(?::\d{2})?\s*(?P<ap>am|pm|a\.m\.|p\.m\.)?$", re.I
@@ -159,6 +162,15 @@ def check_header(header: list[str]) -> str | None:
     i = _cell(header, COL_REMARKS).lower()
     if "remark" not in i:
         return f"Column I is '{i}', expected remarks — not writing."
+    return None
+
+
+def check_note_header(header: list[str], kind: str) -> str | None:
+    """None if the column for this note kind has the expected header, else a reason not to write."""
+    col = NOTE_COLS[kind]
+    name = _cell(header, col).lower()
+    if kind not in name:
+        return f"Column {'ABCDEFGHI'[col]} is '{name}', expected {kind} — not writing."
     return None
 
 

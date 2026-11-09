@@ -13,6 +13,15 @@ class FakeSheet:
     def __init__(self, logged=False):
         self.writes = []
         self.is_logged = logged
+        self.notes = {}  # kind -> current cell text
+        self.note_writes = []
+
+    def read_note(self, day, kind):
+        return self.notes.get(kind, "")
+
+    def write_note(self, day, kind, text, replace):
+        self.note_writes.append((day, kind, text, replace))
+        return self.notes.get(kind, "")
 
     def write_entry(self, day, sleep, wake, remarks):
         self.writes.append((day, sleep, wake, remarks))
@@ -127,3 +136,74 @@ def test_remark_only_is_saved():
     asyncio.run(bot.on_text(update("napped 2pm"), ctx))
     assert sheet.writes[0][1:] == (None, None, "napped 2pm")
     assert "Remark saved." in replies[-1]
+
+
+def run_cmd(kind, update, ctx, text):
+    asyncio.run(bot.note_cmd(kind)(update(text), ctx))
+
+
+def test_remark_with_text_replaces_and_echoes_old_text():
+    ctx, sheet, _, replies, update = make()
+    sheet.notes["remark"] = "old words"
+    run_cmd("remark", update, ctx, "/remark new words")
+    assert sheet.note_writes[0][1:] == ("remark", "new words", True)
+    assert "replaced" in replies[-1] and "old words" in replies[-1]
+    assert ctx.chat_data == {}
+
+
+def test_positive_and_negative_add_and_keep_line_breaks():
+    ctx, sheet, _, replies, update = make()
+    run_cmd("positive", update, ctx, "/positive slept well\nfelt calm")
+    run_cmd("negative", update, ctx, "/negative@clzhsleeplogbot headache")
+    assert [w[1:] for w in sheet.note_writes] == [
+        ("positive", "slept well\nfelt calm", False),
+        ("negative", "headache", False),
+    ]
+    assert "Negative observation saved" in replies[-1]
+
+
+def test_bare_command_shows_cell_then_next_message_writes():
+    ctx, sheet, _, replies, update = make()
+    sheet.notes["remark"] = "typo here"
+    run_cmd("remark", update, ctx, "/remark")
+    assert "typo here" in replies[-1] and "replace it" in replies[-1] and not sheet.note_writes
+    asyncio.run(bot.on_text(update("fixed"), ctx))
+    assert sheet.note_writes[0][1:] == ("remark", "fixed", True)
+    assert ctx.chat_data == {}
+
+
+def test_bare_command_skip_changes_nothing():
+    ctx, sheet, _, replies, update = make()
+    run_cmd("positive", update, ctx, "/positive")
+    assert "No positive observation" in replies[-1]
+    asyncio.run(bot.on_text(update("skip"), ctx))
+    assert not sheet.note_writes and ctx.chat_data == {}
+
+
+def test_note_commands_leave_a_log_in_progress_alone():
+    ctx, sheet, _, replies, update = make()
+    asyncio.run(bot.cmd_log(update("/log"), ctx))
+    run_cmd("positive", update, ctx, "/positive")
+    assert "Finish /log" in replies[-1] and ctx.chat_data["step"] == "sleep"
+    run_cmd("positive", update, ctx, "/positive good day")
+    assert sheet.note_writes[0][2] == "good day" and ctx.chat_data["step"] == "sleep"
+
+
+def test_unanswered_note_command_does_not_block_morning_question():
+    ctx, _, fbot, _, update = make()
+    run_cmd("remark", update, ctx, "/remark")
+    asyncio.run(bot.morning(ctx))
+    assert fbot.sent == [bot.Q_SLEEP] and ctx.chat_data["step"] == "sleep"
+
+
+def test_newer_inline_note_drops_an_unanswered_one():
+    ctx, sheet, _, _, update = make()
+    run_cmd("remark", update, ctx, "/remark")
+    run_cmd("positive", update, ctx, "/positive good day")
+    assert ctx.chat_data == {} and len(sheet.note_writes) == 1
+
+
+def test_strangers_cannot_use_note_commands():
+    ctx, sheet, _, replies, update = make(chat_id=999)
+    run_cmd("remark", update, ctx, "/remark hello")
+    assert not sheet.note_writes and not replies

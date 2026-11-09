@@ -31,6 +31,8 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
   (decision 0004). Verified: systemd active and enabled, scheduler added the `morning` job, the droplet
   read the sheet's tab list with the service account, and Telegram returned a 409 to a second poller.
   **Not yet seen:** a real 08:00 SGT question (first one due 2026-11-05).
+  2026-11-09: added `/remark` (replaces column I), `/positive` and `/negative` (add to C and D). 49
+  pytest tests.
 
 ## Next
 Top of [TODO.md](TODO.md).
