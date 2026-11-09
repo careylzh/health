@@ -1,0 +1,49 @@
+name: Test & deploy Sleep Log bot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sleep-log/**"
+      - ".github/workflows/deploy-bot.yml"
+  pull_request:
+    paths:
+      - "sleep-log/**"
+      - ".github/workflows/deploy-bot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-bot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r sleep-log/requirements-dev.txt
+      - run: python -m pytest -q
+        working-directory: sleep-log
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to the droplet
+        env:
+          DEPLOY_KEY: ${{ secrets.SLEEP_LOG_DEPLOY_KEY }}
+          HOST_KEY: "165.245.190.59 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMJXF7HLBsD7M5pj8KT+l8eQZ4hralS6faDc83YVGC68"
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$HOST_KEY" > ~/.ssh/known_hosts
+          # The key's forced command runs the deploy on the droplet, whatever is sent here.
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o IdentitiesOnly=yes root@165.245.190.59 deploy

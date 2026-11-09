@@ -68,6 +68,13 @@ exits 0.
 - **When something goes wrong**, add a dated entry to `docs/analysis/POSTMORTEM.md`:
   what happened, root cause, the rule that prevents it. Then add the rule here if it is general.
 
+## Working from a cloud session (Claude mobile app or claude.ai/code)
+No SSH, no live-sheet access and no secrets are available there, and none are needed. Run the tests
+(bot: `cd sleep-log && python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt &&
+.venv/bin/python -m pytest -q`). **Merging to `main` deploys:** the site always, and the bot when
+`sleep-log/` changes (decision 0007). Afterwards, check the run in GitHub Actions; a green run shows
+the deploy finished, not that a feature works, so ask Carey to try it in Telegram or on the site.
+
 ## Roles (optional specialist personas)
 Tool-neutral role briefs live in `agents/roles/`. Any agent can adopt one by reading it:
 - `qa-inspector` — "how do you actually know?" before commit / before deploy.
