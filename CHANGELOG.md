@@ -4,6 +4,10 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-09 — Bot deploys from GitHub Actions
+- A push to `main` that touches `sleep-log/` tests and deploys the bot, so it can ship from the
+  Claude mobile app (decision 0007). It uses a key limited to running the deploy script.
+
 ### 2026-11-09 — Sleep Log bot: edit today's notes at any time
 - `/remark` adds to today's remarks, on a new line below the existing text. It first replaced the
   cell; it was changed the same day to keep earlier comments.

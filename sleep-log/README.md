@@ -71,8 +71,10 @@ Ubuntu 24.04, SGP1, 512 MB + 1 GB swap. It runs as the `sleeplog` user from `/op
 under systemd (`deploy/sleep-log.service`), which restarts it on crash and starts it on boot.
 **Do not run it on the Mac too.** Two pollers fight over updates (Telegram 409 Conflict).
 
-- **Ship a change:** `deploy/deploy.sh`. It copies the code, `.env` and `service-account.json`,
-  reinstalls requirements and restarts the bot.
+- **Ship a change:** push to `main`. GitHub Actions runs the tests, then deploys (decision 0007).
+  One-time setup: run `deploy/setup-actions-deploy.sh` on the Mac.
+- **From the Mac:** `deploy/deploy.sh` also copies `.env`, `service-account.json` and the systemd
+  unit. Use it when any of those change.
 - **Logs / status:** `ssh root@165.245.190.59 journalctl -u sleep-log -f` ·
   `systemctl status sleep-log`.
 - **New droplet from scratch:** as root, add swap (`fallocate -l 1G /swapfile`, then `mkswap`,

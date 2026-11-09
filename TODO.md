@@ -3,6 +3,8 @@
 State → [HANDOFF.md](HANDOFF.md). Tick a box only for behaviour you observed (see AGENTS.md).
 
 ## Next up
+- [ ] Carey: run `sleep-log/deploy/setup-actions-deploy.sh` on the Mac, then connect GitHub in the
+      Claude app's Code tab (decision 0007). Then confirm a bot deploy goes green in Actions.
 - [ ] Sleep Log bot: deployed to the DigitalOcean droplet 2026-11-04. Check that the 08:00 SGT
       question arrives on 2026-11-05, then tick this.
 - [ ] Walk the live site on a real phone and iPad in both languages; note anything cluttered.
