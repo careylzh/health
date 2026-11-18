@@ -6,6 +6,7 @@ import type { Bullet } from "./data/insights";
 import type { AppetiteState, TagKey } from "./data/keywords";
 import type { ChartView, Quality } from "./data/stats";
 import type { Flag } from "./data/flags";
+import type { TrackedKey } from "./data/since";
 
 export type Lang = "en" | "zh";
 
@@ -60,7 +61,7 @@ const en = {
   scroll: "Scroll",
   nav: { menu: "Menu", close: "Close menu", sleep: "Sleep", flags: "Highlighted days", meds: "Medication" },
   flagsTitle: "Highlighted days",
-  flag: { severe: "Severe", nosleep: "No sleep", good: "Good sign" } as Record<Flag, string>,
+  flag: { severe: "Severe", nosleep: "No sleep", green: "Green" } as Record<Flag, string>,
   flagsFrom: "From the sheet's red and green highlights",
   flagsNone: "Nothing highlighted in this range",
   flagsNotSynced: "No highlights synced yet",
@@ -76,7 +77,7 @@ const en = {
   lockAgain: "Lock",
   liNow: "Lithium now",
   liMissed: "Missed",
-  liSince: (from: string, last: string) => `since ${from} · last noted ${last}`,
+  liSince: (from: string, last: string) => `since ${from} · last written ${last}`,
   liNone: "No lithium noted yet",
   liRange: (range: string, taken: number, missed: number) => `${range}: taken ${taken}, missed ${d(missed)}`,
   liChanges: "Lithium changes",
@@ -87,7 +88,25 @@ const en = {
   mirtUnit: "nights",
   mirtSub: (doses: [number, number][], last: string) => `${doses.map(([m, k]) => `${mg(m)} ×${k}`).join(" · ")} · last ${last}`,
   mirtNone: "Not taken in this range",
-  medsNote: "A blank day is 'not noted', not 'not taken'.",
+  medsNote: "A blank day counts as no change.",
+  tracked: { tcm: "TCM" } as Record<TrackedKey, string>,
+  dayN: (n: number) => `Day ${n}`,
+  trackedSince: (from: string) => `since starting on ${from}`,
+  cmpTitle: (name: string) => `Before vs since ${name}`,
+  cmpBefore: "Before",
+  cmpSince: "Since",
+  cmpDates: (a: string, b: string) => `${a} – ${b}`,
+  cmpLogged: "Nights logged",
+  cmpAvg: "Average sleep",
+  cmpBroken: "Broken nights",
+  cmpRed: "Red days",
+  cmpLow: "Low mood noted",
+  cmpGood: "Good mood noted",
+  cmpNotEnough: (n: number, days: number, min: number) => `Not enough logged before to compare: ${n} of ${days} nights (needs ${min}).`,
+  cmpLiCaveat: (dates: string) => `Lithium also changed in this time (${dates}), so a difference can't be put down to one thing.`,
+  cmpNotProof: "Counts from the log, not a diagnosis.",
+  greensTitle: "Green days: what they were",
+  greensNone: "No green notes yet",
 };
 
 const zh: typeof en = {
@@ -132,7 +151,7 @@ const zh: typeof en = {
   scroll: "下滑",
   nav: { menu: "菜单", close: "关闭菜单", sleep: "睡眠", flags: "标记日", meds: "用药" },
   flagsTitle: "标记日",
-  flag: { severe: "严重", nosleep: "没睡", good: "好迹象" },
+  flag: { severe: "严重", nosleep: "没睡", green: "绿色" },
   flagsFrom: "来自表格里的红色和绿色标记",
   flagsNone: "此期间没有标记",
   flagsNotSynced: "标记尚未同步",
@@ -148,7 +167,7 @@ const zh: typeof en = {
   lockAgain: "锁定",
   liNow: "目前锂盐",
   liMissed: "漏服",
-  liSince: (from, last) => `自 ${from} · 最后记录 ${last}`,
+  liSince: (from, last) => `自 ${from} · 最后写于 ${last}`,
   liNone: "还没有锂盐记录",
   liRange: (range, taken, missed) => `${range}：服用 ${taken} 天，漏服 ${missed} 天`,
   liChanges: "锂盐变化",
@@ -158,7 +177,25 @@ const zh: typeof en = {
   mirtUnit: "晚",
   mirtSub: (doses, last) => `${doses.map(([m, k]) => `${mg(m)} ×${k}`).join(" · ")} · 最近 ${last}`,
   mirtNone: "此期间没有服用",
-  medsNote: "空白的日子是“没记录”，不是“没服用”。",
+  medsNote: "空白的日子算作没有变化。",
+  tracked: { tcm: "中药" },
+  dayN: (n) => `第 ${n} 天`,
+  trackedSince: (from) => `自 ${from} 开始`,
+  cmpTitle: (name) => `${name}之前与之后`,
+  cmpBefore: "之前",
+  cmpSince: "之后",
+  cmpDates: (a, b) => `${a} – ${b}`,
+  cmpLogged: "记录的晚数",
+  cmpAvg: "平均睡眠",
+  cmpBroken: "中断的晚数",
+  cmpRed: "红色标记日",
+  cmpLow: "记录情绪低落",
+  cmpGood: "记录心情好",
+  cmpNotEnough: (n, days, min) => `之前记录不足，无法比较：${days} 晚中仅 ${n} 晚（至少需要 ${min} 晚）。`,
+  cmpLiCaveat: (dates) => `这段时间锂盐也有变化（${dates}），所以差别不能只归因于一件事。`,
+  cmpNotProof: "以上是记录里的计数，不是诊断。",
+  greensTitle: "绿色日子：当时是什么",
+  greensNone: "还没有绿色备注",
 };
 
 export const STRINGS: Record<Lang, typeof en> = { en, zh };

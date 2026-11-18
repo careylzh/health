@@ -3,11 +3,14 @@
 Carey shades rows in the year tab by hand:
 - strong red (red, dark red 1–3)    -> "severe"  (e.g. psychotic symptoms that day)
 - light red (light red 1–3)         -> "nosleep" (no sleep the night before)
-- any green                         -> "good"    (a no-lost-sleep streak, starting a new med or supplement)
+- any green                         -> "green"   (no fixed meaning: a good streak, OR starting /
+                                                  changing a med or supplement; decision 0009)
 Other colours (orange, yellow, blue…) are not part of the key and are ignored.
 
 The web app cannot see cell colours (the gviz feed has values only), so the bot writes a small
-`flags` tab of ISO date + flag. No note text ever goes into it.
+`flags` tab: ISO date, flag and, for green rows only, a short note saying what the row was (its
+pharmacology cell, else its positive observation). The note is the same text as in the year tab
+(equally link-readable); the web app shows it only behind the passcode.
 """
 from __future__ import annotations
 
@@ -16,8 +19,9 @@ from collections import Counter
 from datetime import date, timedelta
 
 FLAGS_TAB = "flags"
-FLAGS_HEADER = ["Date", "Flag", "Written by the Sleep Log bot from cell colours; edits here are overwritten"]
-FLAG_RANK = {"severe": 3, "nosleep": 2, "good": 1}  # sort order; a day can carry several flags
+FLAGS_HEADER = ["Date", "Flag", "Note", "Written by the Sleep Log bot from cell colours; edits here are overwritten"]
+FLAG_RANK = {"severe": 3, "nosleep": 2, "green": 1}  # sort order; a day can carry several flags
+NOTE_MAX = 140
 
 _DATE = r"(\d{1,2})/(\d{1,2})(?:/(\d{2}|\d{4}))?"
 _SPAN = re.compile(rf"^{_DATE}(?:\s*[-–~]\s*{_DATE})?$")
@@ -35,7 +39,7 @@ def classify(rgb: dict | None) -> str | None:
     if r - max(g, b) > 0.15 and abs(g - b) < 0.12:  # red family (not orange: green ≈ blue)
         return "severe" if g < 0.3 else "nosleep"
     if g - max(r, b) > 0.08:  # green family
-        return "good"
+        return "green"
     return None
 
 
@@ -89,27 +93,52 @@ def row_spans(date_cells: list[str], tab_year: int) -> list[tuple[date, date] | 
     return out
 
 
-def flags_by_day(tabs: list[tuple[list[str], list[list[dict | None]], int]]) -> dict[date, set[str]]:
-    """Merge (date cells, row colours, tab year) tabs into day -> flags. Row 0 is the header.
+def green_note(pharm: str, positive: str) -> str:
+    """What a green row was about: its pharmacology cell, or its positive observation when the
+    pharmacology cell is empty or only a time such as "(10.30pm)". One line, at most NOTE_MAX."""
+    def clean(t: str) -> str:
+        return re.sub(r"\s+", " ", (t or "")).strip(" ,;/-")
+
+    p = clean(pharm)
+    if not re.search(r"[a-z]{3,}", re.sub(r"\b[ap]\.?m\b", "", p, flags=re.I), re.I):
+        p = ""
+    text = p or clean(positive)
+    return text if len(text) <= NOTE_MAX else text[: NOTE_MAX - 1].rstrip() + "…"
+
+
+Row = tuple[str, list[dict | None], str, str]  # date cell, A–I colours, pharmacology (B), positive (C)
+
+
+def flags_by_day(tabs: list[tuple[list[Row], int]]) -> dict[date, dict[str, list[str]]]:
+    """Merge (rows, tab year) tabs into day -> {flag: [notes]}. rows[0] is the header.
     A flagged range row flags every day in it. Two rows for one day can give it two flags
-    (a light-red no-sleep row and a green "started a new supplement" row)."""
-    out: dict[date, set[str]] = {}
-    for dates, colours, year in tabs:
-        for span, cols in zip(row_spans(dates[1:], year), colours[1:]):
+    (a light-red no-sleep row and a green "started a new supplement" row). Only green rows
+    carry a note."""
+    out: dict[date, dict[str, list[str]]] = {}
+    for rows, year in tabs:
+        body = rows[1:]
+        for span, (_, cols, pharm, positive) in zip(row_spans([r[0] for r in body], year), body):
             flag = row_flag(cols) if span else None
             if not flag:
                 continue
+            note = green_note(pharm, positive) if flag == "green" else ""
             day = span[0]
             while day <= span[1]:
-                out.setdefault(day, set()).add(flag)
+                notes = out.setdefault(day, {}).setdefault(flag, [])
+                if note and note not in notes:
+                    notes.append(note)
                 day += timedelta(days=1)
     return out
 
 
-def flag_rows(flags: dict[date, set[str]]) -> list[list[str]]:
+def flag_rows(flags: dict[date, dict[str, list[str]]]) -> list[list[str]]:
     """The `flags` tab contents: header, then one row per (day, flag), oldest first, the more
-    serious flag first within a day."""
-    rows = [[d.isoformat(), f] for d in sorted(flags) for f in sorted(flags[d], key=lambda f: -FLAG_RANK[f])]
+    serious flag first within a day. Notes of one day's green rows are joined with " · "."""
+    rows = [
+        [d.isoformat(), f, " · ".join(flags[d][f])]
+        for d in sorted(flags)
+        for f in sorted(flags[d], key=lambda f: -FLAG_RANK[f])
+    ]
     return [FLAGS_HEADER] + rows
 
 

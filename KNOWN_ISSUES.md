@@ -28,3 +28,12 @@ server between the site and a private sheet would fix it (decision 0008).
 ## 6. Medication and colour parsing is literal
 New wording ("Lith 200", "half a Mirt") or a new highlight colour is ignored, never guessed. Add the
 phrase or colour and a test in `src/data/meds.test.ts` / `sleep-log/tests/test_flags.py`.
+
+## 7. No baseline before TCM
+Only 4 of the 41 nights before 9 Oct 2026 have sleep logged, and older tabs have no daily sleep
+hours. So the before/since table shows only "since" (decision 0009). It will fill in only if
+earlier nights are logged.
+
+## 8. Undated rows never reach the timeline
+A green row with an empty date cell (e.g. "started new sleep TCM meds") can't be placed. Give it
+a date in the sheet.

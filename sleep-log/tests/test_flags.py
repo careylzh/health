@@ -7,6 +7,7 @@ from sleep_log.flags import (
     duration_formulas,
     flag_rows,
     flags_by_day,
+    green_note,
     rollover_target,
     row_flag,
     row_spans,
@@ -37,14 +38,14 @@ def test_classify_follows_the_colour_key():
     for c in (LIGHT_RED_1, LIGHT_RED_2, LIGHT_RED_3):
         assert classify(c) == "nosleep"
     for c in (DARK_GREEN_2, DARK_GREEN_1, LIGHT_GREEN_1, LIGHT_GREEN_2):
-        assert classify(c) == "good"
+        assert classify(c) == "green"
     for c in (LIGHT_ORANGE_3, YELLOW, WHITE, None, {}):
         assert classify(c) is None
 
 
 def test_row_flag_prefers_the_date_cell_then_the_majority():
     assert row_flag([DARK_RED_2] + [LIGHT_GREEN_1] * 8) == "severe"
-    assert row_flag([WHITE, LIGHT_GREEN_2, WHITE, LIGHT_GREEN_2]) == "good"
+    assert row_flag([WHITE, LIGHT_GREEN_2, WHITE, LIGHT_GREEN_2]) == "green"
     assert row_flag([None, LIGHT_RED_2, LIGHT_GREEN_1]) == "nosleep"  # tie -> more serious
     assert row_flag([LIGHT_ORANGE_3, LIGHT_ORANGE_3]) is None
     assert row_flag([]) is None
@@ -62,25 +63,41 @@ def test_row_spans_single_days_ranges_and_carry_over():
     ]
 
 
+def rows(*cells):
+    """(date, colour, pharmacology, positive) -> the Row shape flags_by_day takes."""
+    return [("Dates", [], "", "")] + [(d, [c], p, q) for d, c, p, q in cells]
+
+
 def test_flags_by_day_expands_ranges_and_keeps_both_flags_of_a_day():
-    dates = ["Dates", "1/3", "2/3-4/3", "4/3", "5/3", "4/3"]
-    colours = [[], [LIGHT_GREEN_1], [LIGHT_GREEN_1], [DARK_RED_2], [WHITE], [LIGHT_GREEN_2]]
-    got = flags_by_day([(dates, colours, 2026)])
+    got = flags_by_day([(rows(
+        ("1/3", LIGHT_GREEN_1, "Started supplement X", "felt fine"),
+        ("2/3-4/3", LIGHT_GREEN_1, "(10.30pm)", "a calm streak"),
+        ("4/3", DARK_RED_2, "private words", "more private words"),
+        ("5/3", WHITE, "Started Y", ""),
+        ("4/3", LIGHT_GREEN_2, "Increased dose Z", ""),
+    ), 2026)])
     assert got == {
-        date(2026, 3, 1): {"good"}, date(2026, 3, 2): {"good"}, date(2026, 3, 3): {"good"},
-        date(2026, 3, 4): {"severe", "good"},
+        date(2026, 3, 1): {"green": ["Started supplement X"]},
+        date(2026, 3, 2): {"green": ["a calm streak"]},
+        date(2026, 3, 3): {"green": ["a calm streak"]},
+        date(2026, 3, 4): {"severe": [], "green": ["a calm streak", "Increased dose Z"]},
     }
-    rows = flag_rows(got)
-    assert rows[0] == FLAGS_HEADER
-    assert rows[1] == ["2026-03-01", "good"]
-    assert rows[-2:] == [["2026-03-04", "severe"], ["2026-03-04", "good"]]
+    out = flag_rows(got)
+    assert out[0] == FLAGS_HEADER
+    assert out[1] == ["2026-03-01", "green", "Started supplement X"]
+    assert out[-2:] == [["2026-03-04", "severe", ""], ["2026-03-04", "green", "a calm streak · Increased dose Z"]]
 
 
-def test_flags_tab_never_carries_note_text():
-    dates = ["Dates", "1/3"]
-    colours = [[], [DARK_RED_2]]
-    rows = flag_rows(flags_by_day([(dates, colours, 2026)]))
-    assert rows[1:] == [["2026-03-01", "severe"]]
+def test_red_rows_never_carry_text():
+    out = flag_rows(flags_by_day([(rows(("1/3", DARK_RED_2, "private words", "more")), 2026)]))
+    assert out[1:] == [["2026-03-01", "severe", ""]]
+
+
+def test_green_note_prefers_pharmacology_then_positive():
+    assert green_note(", Started X 5mg ", "ignored") == "Started X 5mg"
+    assert green_note("(10.30pm)", "Achievement:\nslept   8 hours") == "Achievement: slept 8 hours"
+    assert green_note("", "") == ""
+    assert green_note("a" * 300, "").endswith("…") and len(green_note("a" * 300, "")) == 140
 
 
 def test_rollover_on_new_years_eve_and_catch_up():
