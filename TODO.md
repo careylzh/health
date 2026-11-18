@@ -3,10 +3,9 @@
 State → [HANDOFF.md](HANDOFF.md). Tick a box only for behaviour you observed (see AGENTS.md).
 
 ## Next up
-- [ ] Carey: set the meds passcode: `node scripts/set-passcode.mjs`, commit `src/passcodeHash.ts`,
-      push. Until then the Medication page says "not set up".
-- [ ] After the bot deploy: check that the `flags` tab appears in the sheet and the Highlighted days
-      page shows real counts (decision 0008).
+- [x] Carey set the meds passcode; hash deployed 2026-11-18.
+- [x] `flags` tab written by the bot after the 2026-11-18 deploy (27 good / 11 no-sleep / 1 severe).
+- [ ] Walk the live drawer pages on a phone: real highlight counts, passcode unlocks Medication.
 - [ ] 31 Dec 2026: check that the bot created the `2027` tab and messaged the chat. On 1 Jan,
       check that the site reads it.
 - [ ] Carey: connect GitHub in the Claude app's Code tab, then ship one change from the phone to
