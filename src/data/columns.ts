@@ -7,6 +7,7 @@ export const COLUMN_KEYS = {
   positive: "positive",
   negative: "negative",
   remarks: "remark",
+  pharm: "pharmacology",
 } as const;
 
 export type ColumnName = keyof typeof COLUMN_KEYS;

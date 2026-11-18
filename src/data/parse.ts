@@ -14,6 +14,9 @@ export interface Night {
   sleepTime: number | null;
   wakeTime: number | null;
   tags: TagKey[];
+  /** The pharmacology cell(s) for this date, verbatim. Only the passcode-gated meds page reads
+   *  it, through src/data/meds.ts (decision 0008). */
+  pharm: string;
 }
 
 export const totalHours = (n: Night) => (n.mainHours ?? 0) + n.extraHours;
@@ -57,6 +60,7 @@ export function parseSheet(csv: string, tabYear: number): Night[] {
         duration: get(r, col.duration),
         sleep: get(r, col.sleep),
         wake: get(r, col.wake),
+        pharm: get(r, col.pharm),
         notes: [get(r, col.positive), get(r, col.negative), get(r, col.remarks)].filter(Boolean).join("\n"),
       },
     });
@@ -66,7 +70,7 @@ export function parseSheet(csv: string, tabYear: number): Night[] {
   // carry-over. Once any Jan–Oct row is seen, later Nov/Dec rows are this year's — even in a tab
   // with no Jan/Feb rows at all.
   let seenEarly = false;
-  const byIso = new Map<string, { duration: number | null; sleep: number | null; wake: number | null; notes: string[] }>();
+  const byIso = new Map<string, { duration: number | null; sleep: number | null; wake: number | null; notes: string[]; pharm: string[] }>();
   for (const r of raw) {
     if (r.month <= 10) seenEarly = true;
     const year = r.year ?? (!seenEarly && r.month >= 11 ? tabYear - 1 : tabYear);
@@ -78,13 +82,14 @@ export function parseSheet(csv: string, tabYear: number): Night[] {
       wake: parseClock(r.cells.wake),
     };
     const prev = byIso.get(iso);
-    if (!prev) byIso.set(iso, { ...entry, notes: r.cells.notes ? [r.cells.notes] : [] });
+    if (!prev) byIso.set(iso, { ...entry, notes: r.cells.notes ? [r.cells.notes] : [], pharm: r.cells.pharm ? [r.cells.pharm] : [] });
     else {
       // Duplicate date: the row with sleep data wins for numbers; notes are concatenated.
       prev.duration ??= entry.duration;
       prev.sleep ??= entry.sleep;
       prev.wake ??= entry.wake;
       if (r.cells.notes) prev.notes.push(r.cells.notes);
+      if (r.cells.pharm) prev.pharm.push(r.cells.pharm);
     }
   }
 
@@ -102,7 +107,7 @@ export function parseSheet(csv: string, tabYear: number): Night[] {
 
   const nights: Night[] = [];
   for (const iso of tagsByIso.keys()) {
-    if (!byIso.has(iso)) byIso.set(iso, { duration: null, sleep: null, wake: null, notes: [] });
+    if (!byIso.has(iso)) byIso.set(iso, { duration: null, sleep: null, wake: null, notes: [], pharm: [] });
   }
   for (const [iso, e] of byIso) {
     let main = e.duration;
@@ -123,6 +128,7 @@ export function parseSheet(csv: string, tabYear: number): Night[] {
       sleepTime: e.sleep,
       wakeTime: e.wake,
       tags: [...(tagsByIso.get(iso) ?? [])],
+      pharm: e.pharm.join("\n"),
     });
   }
   return nights.sort((a, b) => a.iso.localeCompare(b.iso));
