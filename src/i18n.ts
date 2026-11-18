@@ -5,6 +5,7 @@
 import type { Bullet } from "./data/insights";
 import type { AppetiteState, TagKey } from "./data/keywords";
 import type { ChartView, Quality } from "./data/stats";
+import type { Flag } from "./data/flags";
 
 export type Lang = "en" | "zh";
 
@@ -14,6 +15,7 @@ export type RangeDays = (typeof RANGES)[number];
 const APPETITE_ORDER = ["good", "mixed", "dipped", "poor"] as const;
 /** "1 day" / "2 days" — English only; 中文 has no plural. */
 const d = (n: number) => `${n} ${n === 1 ? "day" : "days"}`;
+const mg = (n: number) => `${n} mg`;
 const h1 = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
 
 const en = {
@@ -56,6 +58,36 @@ const en = {
   } as Record<TagKey, string>,
   appetiteState: { good: "good appetite", mixed: "mixed appetite", dipped: "appetite dipped", poor: "poor appetite" } as Record<AppetiteState, string>,
   scroll: "Scroll",
+  nav: { menu: "Menu", close: "Close menu", sleep: "Sleep", flags: "Highlighted days", meds: "Medication" },
+  flagsTitle: "Highlighted days",
+  flag: { severe: "Severe", nosleep: "No sleep", good: "Good sign" } as Record<Flag, string>,
+  flagsFrom: "From the sheet's red and green highlights",
+  flagsNone: "Nothing highlighted in this range",
+  flagsNotSynced: "No highlights synced yet",
+  flagsGridTitle: "Day by day",
+  flagsTap: "Tap a day for details",
+  flagDay: (day: string, labels: string) => `${day}: ${labels || "not highlighted"}`,
+  lockTitle: "Medication",
+  lockSub: "Enter the passcode to view",
+  lockInput: "Passcode",
+  unlock: "Unlock",
+  wrongCode: "That's not the passcode",
+  notSetUp: "The passcode isn't set up yet",
+  lockAgain: "Lock",
+  liNow: "Lithium now",
+  liMissed: "Missed",
+  liSince: (from: string, last: string) => `since ${from} · last noted ${last}`,
+  liNone: "No lithium noted yet",
+  liRange: (range: string, taken: number, missed: number) => `${range}: taken ${taken}, missed ${d(missed)}`,
+  liChanges: "Lithium changes",
+  liRun: (mgOrNull: number | null, missed: boolean, noted: number) =>
+    missed ? `Missed (${d(noted)})` : mgOrNull !== null ? mg(mgOrNull) : "Taken",
+  mirtTitle: "Mirtazapine, as needed",
+  mirtBig: (k: number, n: number) => `${k} of ${n}`,
+  mirtUnit: "nights",
+  mirtSub: (doses: [number, number][], last: string) => `${doses.map(([m, k]) => `${mg(m)} ×${k}`).join(" · ")} · last ${last}`,
+  mirtNone: "Not taken in this range",
+  medsNote: "A blank day is 'not noted', not 'not taken'.",
 };
 
 const zh: typeof en = {
@@ -98,6 +130,35 @@ const zh: typeof en = {
   },
   appetiteState: { good: "胃口好", mixed: "胃口时好时差", dipped: "胃口下降", poor: "胃口差" },
   scroll: "下滑",
+  nav: { menu: "菜单", close: "关闭菜单", sleep: "睡眠", flags: "标记日", meds: "用药" },
+  flagsTitle: "标记日",
+  flag: { severe: "严重", nosleep: "没睡", good: "好迹象" },
+  flagsFrom: "来自表格里的红色和绿色标记",
+  flagsNone: "此期间没有标记",
+  flagsNotSynced: "标记尚未同步",
+  flagsGridTitle: "每日",
+  flagsTap: "点击某天查看详情",
+  flagDay: (day, labels) => `${day}：${labels || "无标记"}`,
+  lockTitle: "用药",
+  lockSub: "输入密码查看",
+  lockInput: "密码",
+  unlock: "解锁",
+  wrongCode: "密码不对",
+  notSetUp: "尚未设置密码",
+  lockAgain: "锁定",
+  liNow: "目前锂盐",
+  liMissed: "漏服",
+  liSince: (from, last) => `自 ${from} · 最后记录 ${last}`,
+  liNone: "还没有锂盐记录",
+  liRange: (range, taken, missed) => `${range}：服用 ${taken} 天，漏服 ${missed} 天`,
+  liChanges: "锂盐变化",
+  liRun: (mgOrNull, missed, noted) => (missed ? `漏服（${noted} 天）` : mgOrNull !== null ? mg(mgOrNull) : "已服用"),
+  mirtTitle: "米氮平（按需）",
+  mirtBig: (k, n) => `${k} / ${n}`,
+  mirtUnit: "晚",
+  mirtSub: (doses, last) => `${doses.map(([m, k]) => `${mg(m)} ×${k}`).join(" · ")} · 最近 ${last}`,
+  mirtNone: "此期间没有服用",
+  medsNote: "空白的日子是“没记录”，不是“没服用”。",
 };
 
 export const STRINGS: Record<Lang, typeof en> = { en, zh };
