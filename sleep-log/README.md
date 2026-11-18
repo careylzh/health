@@ -39,6 +39,12 @@ Past 7 days: avg 6.8 h (5 of 7 nights logged).
 
   Send one with no text to see the cell first. Your next message is then used as the text (`skip`
   changes nothing). "Today" is today's row, the same row `/log` writes.
+- **Sheet upkeep (decision 0008):**
+  - Every 30 min it copies the year tabs' red/green highlights into a `flags` tab (date and flag
+    only) for the website's Highlighted days page. Don't edit that tab by hand; the next sync
+    overwrites it.
+  - On 31 Dec (checked daily at 00:10 and at start-up) it creates next year's tab from this
+    year's. Entries and colours are cleared and every date is filled in. It messages you when done.
 - Only your own chat (`TELEGRAM_CHAT_ID`) can use it. Anyone else gets their chat id back and
   nothing else.
 

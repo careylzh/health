@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { loadNights } from "./data/sheet";
+import { defaultFetch, loadNights } from "./data/sheet";
+import { loadFlags, type Flag } from "./data/flags";
 import { CHART_VIEWS, summarise, type ChartView } from "./data/stats";
-import { buildBullets, countTags } from "./data/insights";
 import type { Night } from "./data/parse";
-import { bulletText, formatTime, RANGES, STRINGS, type Lang, type RangeDays } from "./i18n";
+import { RANGES, STRINGS, type Lang, type RangeDays } from "./i18n";
+import { unlockToken } from "./passcode";
 import { Cross } from "./Cross";
 import { CrossField } from "./CrossField";
-import { NightChart } from "./NightChart";
+import { SleepPage } from "./pages/SleepPage";
+import { FlagsPage } from "./pages/FlagsPage";
+import { MedsPage } from "./pages/MedsPage";
 
 // Per-viewer conveniences only; the app works without storage.
 const load = <T,>(k: string, ok: (v: string) => boolean, d: T): T => {
@@ -14,20 +17,29 @@ const load = <T,>(k: string, ok: (v: string) => boolean, d: T): T => {
 };
 const save = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* ignore */ } };
 
-type State = { status: "loading" } | { status: "error" } | { status: "ready"; nights: Night[]; at: Date };
+const PAGES = ["sleep", "flags", "meds"] as const;
+type Page = (typeof PAGES)[number];
+
+type State =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; nights: Night[]; flags: Map<string, Flag[]>; at: Date };
 
 export default function App() {
   const [lang, setLang] = useState<Lang>(() => load("lang", (v) => v === '"en"' || v === '"zh"', "en"));
   const [days, setDays] = useState<RangeDays>(() => load("days", (v) => RANGES.includes(Number(v) as RangeDays), 7));
   const [view, setView] = useState<ChartView>(() => load("view", (v) => CHART_VIEWS.includes(JSON.parse(v)), "total"));
+  const [page, setPage] = useState<Page>(() => load("page", (v) => PAGES.includes(JSON.parse(v)), "sleep"));
+  const [unlocked, setUnlocked] = useState(() => unlockToken() !== "" && load("meds", () => true, "") === unlockToken());
+  const [drawer, setDrawer] = useState(false);
   const [state, setState] = useState<State>({ status: "loading" });
   const t = STRINGS[lang];
 
   // "Backend" = the viewer's browser fetching the sheet's CSV from Google on every load.
   const fetchData = useCallback(() => {
     setState({ status: "loading" });
-    loadNights(new Date())
-      .then((nights) => setState({ status: "ready", nights, at: new Date() }))
+    Promise.all([loadNights(new Date()), loadFlags(defaultFetch)])
+      .then(([nights, flags]) => setState({ status: "ready", nights, flags, at: new Date() }))
       .catch(() => setState({ status: "error" }));
   }, []);
 
@@ -35,21 +47,32 @@ export default function App() {
   useEffect(() => { save("lang", lang); document.documentElement.lang = lang === "zh" ? "zh-CN" : "en"; document.title = t.title; }, [lang, t.title]);
   useEffect(() => save("days", days), [days]);
   useEffect(() => save("view", view), [view]);
+  useEffect(() => { save("page", page); window.scrollTo({ top: 0, behavior: "auto" }); }, [page]);
+  useEffect(() => {
+    if (!drawer) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setDrawer(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [drawer]);
 
   const summary = useMemo(
     () => (state.status === "ready" ? summarise(state.nights, days, new Date()) : null),
     [state, days],
   );
-  const bullets = useMemo(
-    () => (summary ? buildBullets(summary, countTags(summary.window), summary.window.length) : []),
-    [summary],
-  );
+
+  const go = (p: Page) => { setPage(p); setDrawer(false); };
+  const icons: Record<Page, string> = { sleep: "🌙", flags: "🚩", meds: unlocked ? "💊" : "🔒" };
 
   return (
     <>
       <CrossField />
       <header className="topbar">
-        <div className="brand"><span className="brand-mark"><Cross /></span><span className="brand-name">{t.title}</span></div>
+        <div className="brand">
+          <button className="menu" aria-label={t.nav.menu} aria-expanded={drawer} aria-controls="drawer" onClick={() => setDrawer(true)}>
+            <span /><span /><span />
+          </button>
+          <span className="brand-mark"><Cross /></span><span className="brand-name">{t.title}</span>
+        </div>
         <div className="controls">
           <select aria-label={t.heroEyebrow} value={days} onChange={(e) => setDays(Number(e.target.value) as RangeDays)}>
             {RANGES.map((d) => <option key={d} value={d}>{t.range[d]}</option>)}
@@ -59,6 +82,23 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      <div className={`scrim${drawer ? " open" : ""}`} onClick={() => setDrawer(false)} aria-hidden="true" />
+      <nav id="drawer" className={`drawer${drawer ? " open" : ""}`} aria-label={t.nav.menu} aria-hidden={!drawer} inert={!drawer}>
+        <div className="drawer-head">
+          <span className="brand-mark"><Cross /></span>
+          <button className="drawer-close" aria-label={t.nav.close} onClick={() => setDrawer(false)}>×</button>
+        </div>
+        <ul>
+          {PAGES.map((p) => (
+            <li key={p}>
+              <button aria-current={page === p ? "page" : undefined} onClick={() => go(p)}>
+                <span className="b-icon" aria-hidden="true">{icons[p]}</span>{t.nav[p]}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       <main>
         {state.status !== "ready" || !summary ? (
@@ -71,59 +111,16 @@ export default function App() {
               )}
             </div>
           </section>
+        ) : page === "flags" ? (
+          <FlagsPage flags={state.flags} days={days} lang={lang} />
+        ) : page === "meds" ? (
+          <MedsPage
+            nights={state.nights} summary={summary} days={days} lang={lang} unlocked={unlocked}
+            onUnlock={() => { setUnlocked(true); save("meds", unlockToken()); }}
+            onLock={() => { setUnlocked(false); save("meds", ""); }}
+          />
         ) : (
-          <>
-            <section className="screen" id="hero">
-              <div className="hero">
-                <p className="eyebrow">{t.heroEyebrow} · {t.range[days]}</p>
-                {summary.avgHours !== null ? (
-                  <>
-                    <h1 className="big"><span className="pulse small"><Cross /></span>{summary.avgHours.toFixed(1)}<span className="unit">{t.hoursUnit}</span></h1>
-                    <p className="sub">{t.heroSub(summary.nights.length, summary.minHours!.toFixed(1), summary.maxHours!.toFixed(1))}</p>
-                  </>
-                ) : (
-                  <h1 className="big none">{t.noData}</h1>
-                )}
-                <button className="updated" onClick={fetchData} aria-label={t.refresh}>
-                  ↻ {t.updated(formatTime(state.at, lang))}
-                </button>
-              </div>
-              <a className="scroll-cue" href="#chart" aria-label={t.scroll}>⌄</a>
-            </section>
-
-            <section className="screen" id="chart">
-              <div className="card">
-                <h2>{t.chartTitle}</h2>
-                {summary.nights.length ? <NightChart nights={summary.nights} avg={summary.avgHours} avgExtra={summary.avgExtraHours} view={view} onView={setView} lang={lang} /> : <p className="muted">{t.noData}</p>}
-              </div>
-            </section>
-
-            <section className="screen" id="broken">
-              <div className="card center">
-                <h2>{t.fragTitle}</h2>
-                {summary.fragmented > 0 ? (
-                  <>
-                    <p className="big mid">{t.fragBig(summary.fragmented, summary.nights.length)}<span className="unit">{t.fragUnit}</span></p>
-                    <p className="sub">{t.fragSub(summary.avgExtraHours ?? 0)}</p>
-                  </>
-                ) : (
-                  <p className="sub">{t.fragNone}</p>
-                )}
-              </div>
-            </section>
-
-            <section className="screen" id="glance">
-              <div className="card">
-                <h2>{t.glanceTitle} · {t.range[days]}</h2>
-                <ul className="bullets">
-                  {bullets.map((b, i) => {
-                    const { icon, text } = bulletText(b, lang);
-                    return <li key={i}><span className="b-icon" aria-hidden="true">{icon}</span>{text}</li>;
-                  })}
-                </ul>
-              </div>
-            </section>
-          </>
+          <SleepPage summary={summary} days={days} lang={lang} view={view} onView={setView} at={state.at} onRefresh={fetchData} />
         )}
       </main>
     </>

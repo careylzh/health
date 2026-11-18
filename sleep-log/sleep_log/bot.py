@@ -27,6 +27,7 @@ Q_REMARKS = "📝 Any remarks for last night? (or 'skip')"
 CATCH_UP = timedelta(hours=4)  # ask late (up to 12:00 for 08:00) if the bot was down at ASK_AT
 LOG_STEPS = ("sleep", "wake", "remarks")
 NOTE_LABELS = {"remark": "Remark", "positive": "Positive observation", "negative": "Negative observation"}
+FLAGS_EVERY = timedelta(minutes=30)  # how often cell colours are copied to the `flags` tab
 MAX_ECHO = 3500  # keeps an echoed cell under Telegram's 4096-character message limit
 HELP = (
     "I ask at {at} every day.\n"
@@ -96,6 +97,32 @@ async def morning(ctx: ContextTypes.DEFAULT_TYPE) -> None:
         log.info("a /log is in progress; not interrupting it")
         return
     await ask(ctx.job.chat_id, ctx)
+
+
+async def flags_job(ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    """Copy cell-colour flags into the `flags` tab the web app reads (decision 0008)."""
+    sheet: Sheet = ctx.bot_data["sheet"]
+    try:
+        n = await asyncio.to_thread(sheet.sync_flags, today(ctx))
+    except Exception:
+        log.exception("flag sync failed")
+        return
+    if n is not None:
+        log.info("flags tab updated: %s flagged days", n)
+
+
+async def rollover_job(ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    """On 31 Dec, create next year's tab from this year's template (decision 0008)."""
+    sheet: Sheet = ctx.bot_data["sheet"]
+    try:
+        made = await asyncio.to_thread(sheet.ensure_year_tab, today(ctx))
+    except Exception as e:
+        log.exception("year rollover failed")
+        if ctx.bot_data["chat_id"]:
+            await ctx.bot.send_message(ctx.bot_data["chat_id"], f"⚠️ Couldn't create next year's tab: {e}")
+        return
+    if made and ctx.bot_data["chat_id"]:
+        await ctx.bot.send_message(ctx.bot_data["chat_id"], f"📅 Created the {made} tab, ready for the new year.")
 
 
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
@@ -273,6 +300,12 @@ def main() -> None:
     for kind in NOTE_LABELS:
         app.add_handler(CommandHandler(kind, note_cmd(kind)))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
+
+    # Sheet upkeep runs even without a chat id: flags every 30 min, the year tab daily + at start.
+    app.job_queue.run_repeating(flags_job, interval=FLAGS_EVERY, first=30, name="flags")
+    app.job_queue.run_daily(rollover_job, time(0, 10, tzinfo=tz), name="rollover",
+                            job_kwargs={"misfire_grace_time": 23 * 3600, "coalesce": True})
+    app.job_queue.run_once(rollover_job, 60, name="rollover-catch-up")
 
     if chat_id:
         # misfire grace: if the machine was asleep at 8:00, still ask when it wakes (same morning).

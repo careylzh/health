@@ -7,7 +7,7 @@ export const tabUrl = (year: number) =>
 
 type Fetcher = (url: string) => Promise<string>;
 
-const defaultFetch: Fetcher = async (url) => {
+export const defaultFetch: Fetcher = async (url) => {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
   return res.text();
@@ -50,7 +50,8 @@ export async function loadNights(today: Date, fetchText: Fetcher = defaultFetch)
       if (!old) byIso.set(n.iso, n);
       else {
         const keep = old.mainHours === null && n.mainHours !== null ? n : old;
-        byIso.set(n.iso, { ...keep, tags: [...new Set([...old.tags, ...n.tags])] });
+        const pharm = [...new Set([old.pharm, n.pharm].filter(Boolean))].join("\n");
+        byIso.set(n.iso, { ...keep, tags: [...new Set([...old.tags, ...n.tags])], pharm });
       }
     }
   }

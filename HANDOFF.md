@@ -34,5 +34,15 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
   2026-11-09: added `/remark`, `/positive` and `/negative`, which add to columns I, C and D. 49
   pytest tests.
 
+- 2026-11-18 (branch `drawer-pages`): a ☰ drawer with Highlighted days and a passcode-gated
+  Medication page, plus bot jobs for the `flags` tab (every 30 min) and the 31 Dec year-tab
+  copy (decision 0008).
+  - Verified: 459 Vitest + 62 pytest tests; build green; walked at 375 px in EN and 中文.
+  - The 375 px walk used a throwaway local passcode (reverted) and fake flag rows injected in the
+    browser (the `flags` tab doesn't exist yet).
+  - Read-only checks against the live sheet: the colour key gives 1 severe / 11 no-sleep /
+    27 good days; lithium runs read 400 mg from 24 Sep, missed 12–28 Oct, 200 mg from 1 Nov.
+  - **Not yet seen:** the bot writing the `flags` tab, the real rollover, the passcode set by Carey.
+
 ## Next
 Top of [TODO.md](TODO.md).

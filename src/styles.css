@@ -199,3 +199,80 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- drawer (decision 0008) ---------- */
+.menu {
+  display: grid; place-content: center; gap: 4px; width: 44px; height: 44px; flex: none; padding: 0;
+  border-radius: 14px; border: 1px solid var(--card-border); background: var(--card); cursor: pointer;
+}
+.menu span { display: block; width: 18px; height: 2px; border-radius: 2px; background: var(--ink-2); }
+.scrim {
+  position: fixed; inset: 0; z-index: 20; background: rgba(58, 31, 43, 0.28);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+}
+.scrim.open { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 21; width: min(300px, 82vw);
+  padding: max(14px, env(safe-area-inset-top)) 14px 24px;
+  background: var(--bg-1); border-right: 1px solid var(--card-border);
+  box-shadow: 20px 0 60px rgba(58, 31, 43, 0.15);
+  transform: translateX(-105%); transition: transform 0.22s ease;
+}
+.drawer.open { transform: none; }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.drawer-close { width: 44px; height: 44px; border: 0; background: transparent; font-size: 30px; line-height: 1; color: var(--ink-2); cursor: pointer; }
+.drawer ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.drawer li button {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 0 14px;
+  border: 0; border-radius: 14px; background: transparent; font-size: 17px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.drawer li button:hover { background: var(--card); }
+.drawer li button[aria-current="page"] { background: var(--card); color: var(--accent); box-shadow: inset 3px 0 var(--accent); }
+
+/* ---------- highlighted days ---------- */
+:root {
+  --flag-severe: #9b1c1c;   /* sheet: dark red */
+  --flag-nosleep: #eaa0a0;  /* sheet: light red */
+  --flag-good: #4f9d5e;     /* sheet: green */
+  --day-empty: rgba(122, 74, 92, 0.09);
+}
+.tiles { margin: 6px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tile { display: grid; gap: 6px; padding: 18px 6px; border-radius: 18px; background: rgba(255, 255, 255, 0.65); }
+.tile-n { font-size: clamp(44px, 14vw, 72px); font-weight: 600; line-height: 1; letter-spacing: -0.04em; }
+.tile-l { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.tile-severe .tile-n { color: var(--flag-severe); }
+.tile-nosleep .tile-n { color: #c95757; }
+.tile-good .tile-n { color: var(--flag-good); }
+.sw-severe { background: var(--flag-severe); }
+.sw-nosleep { background: var(--flag-nosleep); }
+.sw-good { background: var(--flag-good); }
+.daygrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.daygrid.dense { gap: 4px; }
+.day { aspect-ratio: 1; min-height: 28px; padding: 0; border: 0; border-radius: 8px; background: var(--day-empty); cursor: pointer; }
+.daygrid.dense .day { min-height: 20px; border-radius: 5px; }
+.day.blank { background: transparent; cursor: default; }
+.day[data-a="severe"] { background: var(--flag-severe); }
+.day[data-a="nosleep"] { background: var(--flag-nosleep); }
+.day[data-a="good"] { background: var(--flag-good); }
+.day.two[data-a="severe"][data-b="good"] { background: linear-gradient(135deg, var(--flag-severe) 50%, var(--flag-good) 50%); }
+.day.two[data-a="nosleep"][data-b="good"] { background: linear-gradient(135deg, var(--flag-nosleep) 50%, var(--flag-good) 50%); }
+.day.two[data-a="severe"][data-b="nosleep"] { background: linear-gradient(135deg, var(--flag-severe) 50%, var(--flag-nosleep) 50%); }
+.day.on { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+/* ---------- medication ---------- */
+.lock { display: grid; justify-items: center; gap: 4px; }
+.lock input {
+  width: min(260px, 100%); min-height: 48px; margin-top: 14px; padding: 0 16px; text-align: center;
+  border-radius: 14px; border: 1px solid var(--card-border); background: rgba(255, 255, 255, 0.85); font: inherit; font-size: 18px;
+}
+.lock .primary:disabled { opacity: 0.5; cursor: default; }
+.lock-msg { min-height: 1.4em; margin: 6px 0 0; color: var(--poor); font-size: 14px; }
+.runs { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.runs li {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 14px 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.65); box-shadow: inset 4px 0 var(--main-sleep);
+}
+.runs li.missed { box-shadow: inset 4px 0 var(--poor); }
+.run-when { color: var(--ink-2); font-size: 15px; white-space: nowrap; }
+.run-what { font-size: clamp(17px, 4.4vw, 20px); font-weight: 600; white-space: nowrap; }
+.sub.small { font-size: 13px; margin-top: 14px; }

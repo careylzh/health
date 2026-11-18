@@ -76,7 +76,9 @@ filled by hand. Columns (row 1): `Dates`, `Pharmacology last night`, `Positive O
   extra hours only; unbroken nights draw nothing (not a zero bar), and the dashed line is the
   average over broken nights only, labelled so. The headline average stays TST, because a total
   on its own can hide broken nights, so the other two views exist. Rules: `barFor` / `chartScale`.
-- **Not displayed:** the pharmacology column and verbatim notes (privacy; site is public).
+- **Not displayed:** verbatim notes (privacy; site is public). The pharmacology column is shown
+  only on the passcode-gated medication page, and only as parsed lithium/mirtazapine doses
+  (decision 0008).
 
 ## How the "backend" works
 There is none. GitHub Pages serves static files; on every page load or refresh the viewer's
