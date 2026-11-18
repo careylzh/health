@@ -27,6 +27,10 @@ class FakeWs:
         self.calls.append(("clear",))
         self.rows = []
 
+    def resize(self, rows, cols):
+        self.calls.append(("resize", rows, cols))
+        self.row_count, self.col_count = rows, cols
+
     def update(self, range_name, values, value_input_option):
         self.calls.append(("update", range_name, values, value_input_option))
 
@@ -56,7 +60,7 @@ class FakeBook:
         return self.tabs[title]
 
     def add_worksheet(self, title, rows, cols):
-        self.tabs[title] = FakeWs(title, wid=99)
+        self.tabs[title] = FakeWs(title, wid=99, row_count=rows, col_count=cols)
         return self.tabs[title]
 
     def fetch_sheet_metadata(self, params):
@@ -85,24 +89,33 @@ def sheet_on(book):
     return s
 
 
-def test_sync_flags_writes_dates_and_flags_only():
+def test_sync_flags_writes_flags_and_only_green_notes():
     grid = {"2026": [
         {"values": [cell("Dates")]},
-        {"values": [cell("1/3", SEVERE), cell("private words", SEVERE)]},
-        {"values": [cell("2/3"), cell("x", GREEN), cell("y", GREEN)]},
+        {"values": [cell("1/3", SEVERE), cell("private words", SEVERE), cell("more private", SEVERE)]},
+        {"values": [cell("2/3"), cell("Started X", GREEN), cell("y", GREEN)]},
         {"values": [cell("3/3"), cell("plain")]},
     ]}
     book = FakeBook([FakeWs("2026")], grid)
     assert sheet_on(book).sync_flags(date(2026, 3, 5)) == 2
     upd = [c for c in book.tabs["flags"].calls if c[0] == "update"][0]
-    assert upd[2] == [FLAGS_HEADER, ["2026-03-01", "severe"], ["2026-03-02", "good"]]
+    assert upd[2] == [FLAGS_HEADER, ["2026-03-01", "severe", ""], ["2026-03-02", "green", "Started X"]]
     assert upd[3] == "RAW"
     assert "private" not in repr(book.tabs["flags"].calls)
 
 
+def test_sync_flags_widens_an_old_three_column_tab():
+    grid = {"2026": [{"values": [cell("Dates")]}, {"values": [cell("1/3", SEVERE)]}]}
+    old = FakeWs("flags", rows=[["Date", "Flag", "old"], ["2026-03-01", "severe"]], row_count=100, col_count=3)
+    book = FakeBook([FakeWs("2026"), old], grid)
+    assert sheet_on(book).sync_flags(date(2026, 3, 5)) == 1
+    assert ("resize", 100, 4) in old.calls
+    assert [c[0] for c in old.calls] == ["clear", "resize", "update"]
+
+
 def test_sync_flags_skips_the_write_when_nothing_changed():
     grid = {"2026": [{"values": [cell("Dates")]}, {"values": [cell("1/3", SEVERE)]}]}
-    flags = FakeWs("flags", rows=[FLAGS_HEADER, ["2026-03-01", "severe"]])
+    flags = FakeWs("flags", rows=[FLAGS_HEADER, ["2026-03-01", "severe", ""]])
     book = FakeBook([FakeWs("2026"), flags], grid)
     assert sheet_on(book).sync_flags(date(2026, 3, 5)) is None
     assert flags.calls == []

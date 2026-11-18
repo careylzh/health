@@ -135,20 +135,20 @@ class Sheet:
 
     # --- Colour flags (decision 0008) -------------------------------------------------------
 
-    def _colours(self, ws: gspread.Worksheet) -> tuple[list[str], list[list[dict | None]]]:
-        """Date cells (column A, as shown) and A–I background colours for every row of a tab."""
+    def _rows(self, ws: gspread.Worksheet) -> list[tuple[str, list[dict | None], str, str]]:
+        """Every row of a tab: date cell (as shown), A–I background colours, pharmacology (B)
+        and positive observation (C) text."""
         meta = self._book.fetch_sheet_metadata(params={
             "ranges": f"'{ws.title}'!A1:I{ws.row_count}",
             "includeGridData": "true",
             "fields": "sheets.data.rowData.values(formattedValue,effectiveFormat.backgroundColor)",
         })
-        rows = meta["sheets"][0]["data"][0].get("rowData", [])
-        dates, colours = [], []
-        for row in rows:
+        out = []
+        for row in meta["sheets"][0]["data"][0].get("rowData", []):
             cells = row.get("values", [])
-            dates.append(cells[0].get("formattedValue", "") if cells else "")
-            colours.append([c.get("effectiveFormat", {}).get("backgroundColor") for c in cells])
-        return dates, colours
+            text = [c.get("formattedValue", "") for c in cells] + [""] * 3
+            out.append((text[0], [c.get("effectiveFormat", {}).get("backgroundColor") for c in cells], text[1], text[2]))
+        return out
 
     def sync_flags(self, today: date) -> int | None:
         """Rewrite the `flags` tab from the current and previous year tabs' cell colours.
@@ -157,18 +157,20 @@ class Sheet:
         for year, fallback in ((today.year, True), (today.year - 1, False)):
             ws = self._tab(year, fallback)
             if ws is not None:
-                dates, colours = self._colours(ws)
-                tabs.append((dates, colours, year))
+                tabs.append((self._rows(ws), year))
         rows = flag_rows(flags_by_day(tabs))
         try:
             out = self._book.worksheet(FLAGS_TAB)
         except gspread.WorksheetNotFound:
-            out = self._book.add_worksheet(FLAGS_TAB, rows=max(len(rows), 100), cols=3)
-        current = [r + [""] * (3 - len(r)) for r in out.get_all_values()]
-        want = [r + [""] * (3 - len(r)) for r in rows]
+            out = self._book.add_worksheet(FLAGS_TAB, rows=max(len(rows), 100), cols=4)
+        width = len(rows[0])
+        current = [(r + [""] * width)[:width] for r in out.get_all_values()]
+        want = [(r + [""] * width)[:width] for r in rows]
         if current == want:
             return None
         out.clear()
+        if out.row_count < len(rows) or out.col_count < width:  # the API refuses writes past the grid
+            out.resize(rows=max(out.row_count, len(rows)), cols=max(out.col_count, width))
         # RAW so ISO dates stay text and the web app reads exactly "2026-10-30".
         out.update(range_name="A1", values=rows, value_input_option="RAW")
         return len(rows) - 1
