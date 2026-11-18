@@ -1,5 +1,5 @@
 # 0008 — Drawer pages: highlighted days, medication behind a passcode, yearly tab rollover
-**Date:** 2026-11-18 · **Status:** accepted
+**Date:** 2026-11-18 · **Status:** accepted; green, notes and blank-day rules amended by 0009
 
 ## Context
 Carey asked for three things (2026-11-17):

@@ -44,5 +44,12 @@ Rules and commands → [AGENTS.md](AGENTS.md). Open work → [TODO.md](TODO.md).
     27 good days; lithium runs read 400 mg from 24 Sep, missed 12–28 Oct, 200 mg from 1 Nov.
   - **Not yet seen:** the bot writing the `flags` tab, the real rollover, the passcode set by Carey.
 
+- 2026-11-18 (branch `green-tcm`): Green replaces "Good sign". Behind the passcode: TCM day
+  counter, before/since table, green-day notes. Blank pharmacology = no change (decision 0009).
+  - Verified: 468 Vitest + 64 pytest tests; build green; walked at 375 px in EN and 中文 with a
+    throwaway passcode (reverted) and fake new-format flags.
+  - Read-only dry run of the bot against the live sheet: 7 green notes read correctly.
+  - **Not yet seen:** the deployed bot writing the Note column.
+
 ## Next
 Top of [TODO.md](TODO.md).

@@ -4,6 +4,17 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-18 — Green days explained, days since TCM
+- "Good sign" is now just **Green**: green can mean a good streak or a new med or supplement
+  (decision 0009).
+- Behind the passcode, the Medication page shows:
+  - **Day N of TCM**, counted from the first green note that says TCM started (9 Oct);
+  - a **before vs since** table, which shows the "before" column only when both sides have at
+    least 10 logged nights, and notes lithium changes in the same period;
+  - **what each green day was**, from the row's pharmacology or positive-observation text.
+- A blank pharmacology day now means **no change**: lithium carries forward. A one-off "missed"
+  covers only its own day unless the next note is another miss or "resumed".
+
 ### 2026-11-18 — Drawer pages: highlighted days, medication, yearly tab
 - A ☰ drawer switches between **Sleep**, **Highlighted days** and **Medication** (decision 0008).
 - **Highlighted days:** counts of severe / no-sleep / good-sign days, and a day-by-day grid, from
