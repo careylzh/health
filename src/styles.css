@@ -233,7 +233,7 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
 :root {
   --flag-severe: #9b1c1c;   /* sheet: dark red */
   --flag-nosleep: #eaa0a0;  /* sheet: light red */
-  --flag-good: #4f9d5e;     /* sheet: green */
+  --flag-green: #4f9d5e;    /* sheet: green (no fixed meaning, decision 0009) */
   --day-empty: rgba(122, 74, 92, 0.09);
 }
 .tiles { margin: 6px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -242,10 +242,10 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
 .tile-l { font-size: 14px; font-weight: 600; color: var(--ink-2); }
 .tile-severe .tile-n { color: var(--flag-severe); }
 .tile-nosleep .tile-n { color: #c95757; }
-.tile-good .tile-n { color: var(--flag-good); }
+.tile-green .tile-n { color: var(--flag-green); }
 .sw-severe { background: var(--flag-severe); }
 .sw-nosleep { background: var(--flag-nosleep); }
-.sw-good { background: var(--flag-good); }
+.sw-green { background: var(--flag-green); }
 .daygrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .daygrid.dense { gap: 4px; }
 .day { aspect-ratio: 1; min-height: 28px; padding: 0; border: 0; border-radius: 8px; background: var(--day-empty); cursor: pointer; }
@@ -253,9 +253,9 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
 .day.blank { background: transparent; cursor: default; }
 .day[data-a="severe"] { background: var(--flag-severe); }
 .day[data-a="nosleep"] { background: var(--flag-nosleep); }
-.day[data-a="good"] { background: var(--flag-good); }
-.day.two[data-a="severe"][data-b="good"] { background: linear-gradient(135deg, var(--flag-severe) 50%, var(--flag-good) 50%); }
-.day.two[data-a="nosleep"][data-b="good"] { background: linear-gradient(135deg, var(--flag-nosleep) 50%, var(--flag-good) 50%); }
+.day[data-a="green"] { background: var(--flag-green); }
+.day.two[data-a="severe"][data-b="green"] { background: linear-gradient(135deg, var(--flag-severe) 50%, var(--flag-green) 50%); }
+.day.two[data-a="nosleep"][data-b="green"] { background: linear-gradient(135deg, var(--flag-nosleep) 50%, var(--flag-green) 50%); }
 .day.two[data-a="severe"][data-b="nosleep"] { background: linear-gradient(135deg, var(--flag-severe) 50%, var(--flag-nosleep) 50%); }
 .day.on { outline: 3px solid var(--ink); outline-offset: 2px; }
 
@@ -276,3 +276,15 @@ h2 { margin: 0 0 18px; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: -0.0
 .run-when { color: var(--ink-2); font-size: 15px; white-space: nowrap; }
 .run-what { font-size: clamp(17px, 4.4vw, 20px); font-weight: 600; white-space: nowrap; }
 .sub.small { font-size: 13px; margin-top: 14px; }
+
+/* ---------- since starting (decision 0009) ---------- */
+.compare { width: 100%; border-collapse: collapse; font-size: clamp(15px, 4vw, 18px); }
+.compare th, .compare td { padding: 10px 6px; text-align: right; border-bottom: 1px solid var(--grid); }
+.compare th:first-child, .compare td:first-child { text-align: left; color: var(--ink-2); font-weight: 500; }
+.compare thead th { font-size: 13px; color: var(--ink-3); font-weight: 600; }
+.compare td { font-weight: 600; font-variant-numeric: tabular-nums; }
+.caveat { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: rgba(201, 138, 18, 0.12); color: var(--ink-2); font-size: 14px; line-height: 1.4; }
+.greens { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.greens li { display: grid; gap: 4px; padding: 14px 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.65); box-shadow: inset 4px 0 var(--flag-green); }
+.greens .g-when { color: var(--ink-3); font-size: 13px; font-weight: 600; }
+.greens .g-note { font-size: 16px; line-height: 1.35; overflow-wrap: anywhere; }

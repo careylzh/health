@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { defaultFetch, loadNights } from "./data/sheet";
-import { loadFlags, type Flag } from "./data/flags";
+import { loadFlags, type FlagData } from "./data/flags";
 import { CHART_VIEWS, summarise, type ChartView } from "./data/stats";
 import type { Night } from "./data/parse";
 import { RANGES, STRINGS, type Lang, type RangeDays } from "./i18n";
@@ -23,7 +23,7 @@ type Page = (typeof PAGES)[number];
 type State =
   | { status: "loading" }
   | { status: "error" }
-  | { status: "ready"; nights: Night[]; flags: Map<string, Flag[]>; at: Date };
+  | { status: "ready"; nights: Night[]; flags: FlagData; at: Date };
 
 export default function App() {
   const [lang, setLang] = useState<Lang>(() => load("lang", (v) => v === '"en"' || v === '"zh"', "en"));
@@ -112,10 +112,10 @@ export default function App() {
             </div>
           </section>
         ) : page === "flags" ? (
-          <FlagsPage flags={state.flags} days={days} lang={lang} />
+          <FlagsPage flags={state.flags.byDay} days={days} lang={lang} />
         ) : page === "meds" ? (
           <MedsPage
-            nights={state.nights} summary={summary} days={days} lang={lang} unlocked={unlocked}
+            nights={state.nights} flags={state.flags} days={days} lang={lang} unlocked={unlocked}
             onUnlock={() => { setUnlocked(true); save("meds", unlockToken()); }}
             onLock={() => { setUnlocked(false); save("meds", ""); }}
           />
