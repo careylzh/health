@@ -19,3 +19,12 @@ future placeholders). A genuinely sleepless night should be recorded with a note
 Tags come from regexes, so sarcasm, negation beyond the handled phrases ("did not wake up feeling
 unrested", "not choking", "don't have") and new wording can be mis-tagged or missed. Add the
 phrase plus a test to `src/data/keywords.ts` / `parse.test.ts` when a bullet looks wrong.
+
+## 5. The medication passcode is a curtain, not a lock
+**Symptom:** anyone determined can see the doses. **Cause:** static site, link-readable sheet, and
+the hash is in the public bundle (a short passcode can be guessed offline). **Direction:** only a
+server between the site and a private sheet would fix it (decision 0008).
+
+## 6. Medication and colour parsing is literal
+New wording ("Lith 200", "half a Mirt") or a new highlight colour is ignored, never guessed. Add the
+phrase or colour and a test in `src/data/meds.test.ts` / `sleep-log/tests/test_flags.py`.

@@ -4,6 +4,16 @@ Dated history, newest first. Versions follow `scripts/version.sh` (semantic).
 
 ## [Unreleased]
 
+### 2026-11-18 — Drawer pages: highlighted days, medication, yearly tab
+- A ☰ drawer switches between **Sleep**, **Highlighted days** and **Medication** (decision 0008).
+- **Highlighted days:** counts of severe / no-sleep / good-sign days, and a day-by-day grid, from
+  the sheet's red and green highlights. The bot copies the colours to a `flags` tab every 30 min.
+  The tab holds dates and flags only, no note text.
+- **Medication** (behind a passcode): current lithium dose, lithium changes over time, and the
+  nights mirtazapine was taken as needed, by dose.
+- **Bot:** on 31 Dec it creates next year's tab from this year's: same header and formulas,
+  entries and colours cleared, every date filled in.
+
 ### 2026-11-09 — Bot deploys from GitHub Actions
 - A push to `main` that touches `sleep-log/` tests and deploys the bot, so it can ship from the
   Claude mobile app (decision 0007). It uses a key limited to running the deploy script.
